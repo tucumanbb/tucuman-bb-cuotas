@@ -1,0 +1,7 @@
+{
+  "name": "Tucumán BB",
+  "description": "Sistema de gestión y registro de cuotas por actividad para el Club Tucumán BB (básquet, gimnasio, yoga y más) con control de deudas y comprobantes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
