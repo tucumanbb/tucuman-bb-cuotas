@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-{"cleanUrls": true, "rewrites": [{"source": "/", "destination": "/index.html"}, {"source": "/web/(.*)", "destination": "/index.html"}]}
-=======
 {
   "cleanUrls": true,
   "rewrites": [
@@ -8,4 +5,3 @@
     { "source": "/web/(.*)", "destination": "/index.html" }
   ]
 }
->>>>>>> 941aabbec8ea324008e1aa716fcf363295897d02

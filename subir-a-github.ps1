@@ -14,20 +14,33 @@ git config user.email "tucumanbbcuotas@gmail.com"
 git remote remove origin 2>$null
 git remote add origin https://github.com/tucumanbb/tucuman-bb-cuotas.git
 
-# Asegurar que index.html esté en la raíz para Vercel
-if (Test-Path "web\index.html") {
-    Copy-Item "web\index.html" "index.html" -Force
+# Asegurar que index.html y club_logo.jpg estén sincronizados en web\ y raíz
+if (Test-Path "index.html") {
+    Copy-Item "index.html" "web\index.html" -Force
+}
+if (Test-Path "club_logo.jpg") {
+    Copy-Item "club_logo.jpg" "web\club_logo.jpg" -Force
 }
 
 # 3. Preparar archivos y comitear cambios
+git add index.html web/index.html club_logo.jpg web/club_logo.jpg supabase_schema.sql subir-a-github.bat subir-a-github.ps1
 git add .
-git commit -m "Actualizacion del sistema de cuotas Club Tucuman BB" 2>$null
+git commit -m "Actualizacion: categorias de basquet, asignacion de profesores, nuevo logo oficial y restricciones de cuotas"
+
 
 # 4. Asegurar rama principal
 git branch -M main
 
-# 5. Subir cambios a GitHub
+# 5. Sincronizar y Subir cambios a GitHub
+Write-Host "`nSincronizando con la rama remota..." -ForegroundColor Yellow
+git pull origin main --allow-unrelated-histories -X ours --no-edit 2>$null
+
 Write-Host "`nSubiendo archivos a https://github.com/tucumanbb/tucuman-bb-cuotas.git ..." -ForegroundColor Yellow
 git push -u origin main
 
-Write-Host "`n¡Proceso completado con éxito!" -ForegroundColor Green
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "`nSincronizando diferencias y asegurando la version mas reciente..." -ForegroundColor Yellow
+    git push -u origin main --force
+}
+
+Write-Host "`n¡Proceso completado con éxito! Vercel actualizará el sitio en 1 minuto." -ForegroundColor Green
