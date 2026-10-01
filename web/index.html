@@ -565,17 +565,20 @@
       </div>
 
       <!-- Pestañas Internas de la Sección -->
-      <div class="flex border-b border-slate-200 gap-2">
-        <button onclick="switchCashflowSubTab('rentals')" id="subTabCashflowRentals" class="py-2.5 px-4 font-bold text-sm border-b-2 border-tucuman-navy text-tucuman-navy flex items-center gap-1.5 transition">
+      <div class="flex border-b border-slate-200 gap-2 overflow-x-auto">
+        <button onclick="switchCashflowSubTab('rentals')" id="subTabCashflowRentals" class="py-2.5 px-4 font-bold text-sm border-b-2 border-tucuman-navy text-tucuman-navy flex items-center gap-1.5 transition whitespace-nowrap">
           🏢 Alquileres de Salón & Eventos
           <span id="badgeCashflowRentalsCount" class="bg-slate-100 text-slate-700 text-xs px-2 py-0.5 rounded-full font-semibold">0</span>
         </button>
-        <button onclick="switchCashflowSubTab('expenses')" id="subTabCashflowExpenses" class="py-2.5 px-4 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition">
+        <button onclick="switchCashflowSubTab('expenses')" id="subTabCashflowExpenses" class="py-2.5 px-4 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition whitespace-nowrap">
           🧾 Gastos y Egresos Operativos
           <span id="badgeCashflowExpensesCount" class="bg-slate-100 text-slate-700 text-xs px-2 py-0.5 rounded-full font-semibold">0</span>
         </button>
-        <button onclick="switchCashflowSubTab('rendicion')" id="subTabCashflowRendicion" class="py-2.5 px-4 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition">
+        <button onclick="switchCashflowSubTab('rendicion')" id="subTabCashflowRendicion" class="py-2.5 px-4 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition whitespace-nowrap">
           📋 Resumen de Rendición
+        </button>
+        <button onclick="switchCashflowSubTab('config')" id="subTabCashflowConfig" class="py-2.5 px-4 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition whitespace-nowrap">
+          ⚙️ Espacios & Rubros <span class="text-[10px] bg-indigo-100 text-indigo-700 font-bold px-1.5 py-0.5 rounded-full">Admin</span>
         </button>
       </div>
 
@@ -682,6 +685,92 @@
             <!-- Resumen dinámico -->
           </div>
         </div>
+      </div>
+
+      <!-- SUB-VISTA 4: CONFIGURACIÓN DE ESPACIOS DE ALQUILER Y RUBROS DE GASTOS (SOLO ADMIN) -->
+      <div id="cashflowSubViewConfig" class="space-y-6 hidden">
+        
+        <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-indigo-950 shadow-xs">
+          <div class="flex items-center gap-2.5">
+            <span class="text-2xl">⚙️</span>
+            <div>
+              <p class="font-extrabold text-sm">Configuración de Espacios de Alquiler y Rubros de Gastos</p>
+              <p class="text-indigo-800">Solo usuarios con <strong>Rol Administrador</strong> pueden dar de alta, modificar o eliminar opciones del catálogo.</p>
+            </div>
+          </div>
+          <span class="px-3 py-1 bg-indigo-600 text-white font-bold rounded-lg self-start sm:self-auto uppercase tracking-wider text-[10px]">
+            👑 Permisos de Administrador
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+          <!-- TABLA 1: ESPACIOS E INSTALACIONES PARA ALQUILAR -->
+          <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div class="flex items-center gap-2">
+                <span class="text-xl">🏢</span>
+                <div>
+                  <h3 class="font-black text-slate-800 text-sm">Espacios e Instalaciones del Club</h3>
+                  <p class="text-[11px] text-slate-500">Sectores disponibles para alquilar a particulares</p>
+                </div>
+              </div>
+              <button onclick="openModal('modalNewFacility')" id="btnNewFacility" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1 shadow-sm transition">
+                + Nuevo Espacio
+              </button>
+            </div>
+
+            <div class="overflow-x-auto border border-slate-100 rounded-xl">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-slate-600 font-bold uppercase text-[10px]">
+                  <tr>
+                    <th class="py-2.5 px-3">Espacio / Instalación</th>
+                    <th class="py-2.5 px-3">Tarifa Sugerida</th>
+                    <th class="py-2.5 px-3">Estado</th>
+                    <th class="py-2.5 px-3 text-right">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="facilitiesTableBody" class="divide-y divide-slate-100 text-slate-700">
+                  <!-- Render dinámico -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- TABLA 2: RUBROS Y CATEGORÍAS DE GASTOS OPERATIVOS -->
+          <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div class="flex items-center gap-2">
+                <span class="text-xl">🧾</span>
+                <div>
+                  <h3 class="font-black text-slate-800 text-sm">Rubros y Categorías de Gastos</h3>
+                  <p class="text-[11px] text-slate-500">Servicios (luz, agua, gas), compras, arbitrajes, etc.</p>
+                </div>
+              </div>
+              <button onclick="openModal('modalNewExpenseCategory')" id="btnNewExpenseCategory" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1 shadow-sm transition">
+                + Nuevo Rubro
+              </button>
+            </div>
+
+            <div class="overflow-x-auto border border-slate-100 rounded-xl">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-slate-600 font-bold uppercase text-[10px]">
+                  <tr>
+                    <th class="py-2.5 px-3">Rubro / Categoría</th>
+                    <th class="py-2.5 px-3">Descripción</th>
+                    <th class="py-2.5 px-3">Estado</th>
+                    <th class="py-2.5 px-3 text-right">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="expenseCategoriesTableBody" class="divide-y divide-slate-100 text-slate-700">
+                  <!-- Render dinámico -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
       </div>
 
     </section>
@@ -1443,13 +1532,14 @@
           <input type="text" id="rentalEventTitle" required placeholder="Ej: Cumpleaños Infantil, Torneo Relámpago, Bautismo" class="w-full px-3 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-tucuman-sky">
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">Espacio o Instalación Alquilada</label>
-          <select id="rentalFacility" required class="w-full px-3 py-2 border rounded-xl text-sm bg-white font-semibold text-slate-700">
-            <option value="Salón Principal">Salón Principal (1er Piso con mesas y sillas)</option>
-            <option value="Cancha de Básquet">Cancha de Básquet (Parqué principal)</option>
-            <option value="Quincho / Asador">Quincho / Asador y Patio</option>
-            <option value="Instalaciones Completas">Instalaciones Completas del Club</option>
-            <option value="Otro Espacio">Otro Espacio</option>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-xs font-bold text-slate-600">Espacio o Instalación Alquilada</label>
+            <button type="button" onclick="openManageFacilities()" class="text-[11px] text-emerald-700 hover:text-emerald-900 font-bold flex items-center gap-1">
+              ⚙️ Gestionar Espacios
+            </button>
+          </div>
+          <select id="rentalFacility" required onchange="onRentalFacilitySelectChanged(this.value)" class="w-full px-3 py-2 border rounded-xl text-sm bg-white font-semibold text-slate-700">
+            <!-- Render dinámico desde rentalFacilities -->
           </select>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -1537,13 +1627,14 @@
           <input type="text" id="editRentalEventTitle" required class="w-full px-3 py-2 border rounded-xl text-sm">
         </div>
         <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">Espacio Alquilado</label>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block text-xs font-bold text-slate-600">Espacio Alquilado</label>
+            <button type="button" onclick="openManageFacilities()" class="text-[11px] text-emerald-700 hover:text-emerald-900 font-bold flex items-center gap-1">
+              ⚙️ Gestionar
+            </button>
+          </div>
           <select id="editRentalFacility" class="w-full px-3 py-2 border rounded-xl text-sm bg-white font-semibold">
-            <option value="Salón Principal">Salón Principal (1er Piso con mesas y sillas)</option>
-            <option value="Cancha de Básquet">Cancha de Básquet (Parqué principal)</option>
-            <option value="Quincho / Asador">Quincho / Asador y Patio</option>
-            <option value="Instalaciones Completas">Instalaciones Completas del Club</option>
-            <option value="Otro Espacio">Otro Espacio</option>
+            <!-- Render dinámico desde rentalFacilities -->
           </select>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -1632,15 +1723,14 @@
             <input type="date" id="expenseDate" required class="w-full px-3 py-2 border rounded-xl text-sm">
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">Rubro / Categoría</label>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-xs font-bold text-slate-600">Rubro / Categoría</label>
+              <button type="button" onclick="openManageExpenseCategories()" class="text-[11px] text-rose-700 hover:text-rose-900 font-bold flex items-center gap-1">
+                ⚙️ Gestionar
+              </button>
+            </div>
             <select id="expenseCategory" required class="w-full px-3 py-2 border rounded-xl text-sm bg-white font-semibold text-slate-700">
-              <option value="Mantenimiento">🛠️ Mantenimiento e Infraestructura</option>
-              <option value="Limpieza">🧹 Limpieza e Higiene</option>
-              <option value="Elementos Deportivos">🏀 Elementos Deportivos / Básquet</option>
-              <option value="Arbitraje">⏱️ Arbitraje y Planilleros</option>
-              <option value="Servicios">💡 Servicios e Impuestos (Luz, Agua, etc.)</option>
-              <option value="Insumos">📦 Insumos de Secretaría / Oficina</option>
-              <option value="Varios">📌 Varios / Otros Egresos</option>
+              <!-- Render dinámico desde expenseCategories -->
             </select>
           </div>
         </div>
@@ -1702,15 +1792,14 @@
             <input type="date" id="editExpenseDate" required class="w-full px-3 py-2 border rounded-xl text-sm">
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">Rubro</label>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-xs font-bold text-slate-600">Rubro</label>
+              <button type="button" onclick="openManageExpenseCategories()" class="text-[11px] text-rose-700 hover:text-rose-900 font-bold flex items-center gap-1">
+                ⚙️ Gestionar
+              </button>
+            </div>
             <select id="editExpenseCategory" class="w-full px-3 py-2 border rounded-xl text-sm bg-white font-semibold">
-              <option value="Mantenimiento">🛠️ Mantenimiento e Infraestructura</option>
-              <option value="Limpieza">🧹 Limpieza e Higiene</option>
-              <option value="Elementos Deportivos">🏀 Elementos Deportivos / Básquet</option>
-              <option value="Arbitraje">⏱️ Arbitraje y Planilleros</option>
-              <option value="Servicios">💡 Servicios e Impuestos</option>
-              <option value="Insumos">📦 Insumos de Secretaría</option>
-              <option value="Varios">📌 Varios / Otros</option>
+              <!-- Render dinámico desde expenseCategories -->
             </select>
           </div>
         </div>
@@ -1748,6 +1837,183 @@
         </div>
         <div class="flex gap-2 pt-2">
           <button type="button" onclick="closeModal('modalEditExpense')" class="flex-1 border py-2.5 rounded-xl text-sm font-semibold text-slate-600">Cancelar</button>
+          <button type="submit" class="flex-1 bg-tucuman-navy hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl text-sm shadow-sm transition">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: NUEVO ESPACIO / INSTALACIÓN DE ALQUILER (ADMIN) -->
+  <div id="modalNewFacility" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl">
+      <div class="flex justify-between items-center">
+        <div>
+          <h3 class="font-extrabold text-lg text-tucuman-navy">🏢 Nuevo Espacio de Alquiler</h3>
+          <p class="text-xs text-slate-500">Agrega un sector o instalación disponible del club</p>
+        </div>
+        <button onclick="closeModal('modalNewFacility')" class="text-slate-400 hover:text-slate-600 font-bold text-xl">&times;</button>
+      </div>
+      <form onsubmit="handleCreateFacility(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Nombre del Espacio / Sector</label>
+          <input type="text" id="facilityName" required placeholder="Ej: Quincho / Asadores, Salón de Fiestas, Cancha Auxiliar" class="w-full px-3 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-tucuman-sky">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Descripción y Equipamiento Incluido</label>
+          <textarea id="facilityDesc" rows="2" placeholder="Ej: Incluye 50 sillas, 10 mesas, heladera y parrilla con luz" class="w-full px-3 py-2 border rounded-xl text-sm"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Tarifa Sugerida / Base ($ ARS)</label>
+          <input type="number" id="facilityPrice" min="0" step="500" placeholder="Ej: 60000" class="w-full px-3 py-2 border rounded-xl text-sm font-bold text-slate-800">
+          <p class="text-[11px] text-slate-400 mt-0.5">Se cargará como sugerencia al registrar un nuevo evento.</p>
+        </div>
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeModal('modalNewFacility')" class="flex-1 border py-2.5 rounded-xl text-sm font-semibold text-slate-600">Cancelar</button>
+          <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-sm shadow-sm transition">Guardar Espacio</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: EDITAR ESPACIO DE ALQUILER (ADMIN) -->
+  <div id="modalEditFacility" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl">
+      <div class="flex justify-between items-center">
+        <div>
+          <h3 class="font-extrabold text-lg text-tucuman-navy">✏️ Modificar Espacio de Alquiler</h3>
+          <p class="text-xs text-slate-500">Actualiza las condiciones o el estado del sector</p>
+        </div>
+        <button onclick="closeModal('modalEditFacility')" class="text-slate-400 hover:text-slate-600 font-bold text-xl">&times;</button>
+      </div>
+      <form onsubmit="handleUpdateFacility(event)" class="space-y-3">
+        <input type="hidden" id="editFacilityId">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Nombre del Espacio</label>
+          <input type="text" id="editFacilityName" required class="w-full px-3 py-2 border rounded-xl text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Descripción</label>
+          <textarea id="editFacilityDesc" rows="2" class="w-full px-3 py-2 border rounded-xl text-sm"></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Tarifa Sugerida ($)</label>
+            <input type="number" id="editFacilityPrice" min="0" step="500" class="w-full px-3 py-2 border rounded-xl text-sm font-bold text-slate-800">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Estado</label>
+            <select id="editFacilityIsActive" class="w-full px-3 py-2 border rounded-xl text-sm bg-white font-semibold">
+              <option value="true">Activo / Disponible</option>
+              <option value="false">Inactivo / En refacción</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeModal('modalEditFacility')" class="flex-1 border py-2.5 rounded-xl text-sm font-semibold text-slate-600">Cancelar</button>
+          <button type="submit" class="flex-1 bg-tucuman-navy hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl text-sm shadow-sm transition">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: NUEVA CATEGORÍA DE GASTO (ADMIN) -->
+  <div id="modalNewExpenseCategory" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl">
+      <div class="flex justify-between items-center">
+        <div>
+          <h3 class="font-extrabold text-lg text-tucuman-navy">🧾 Nuevo Rubro de Gasto</h3>
+          <p class="text-xs text-slate-500">Agrega servicios (luz, agua), compras u honorarios</p>
+        </div>
+        <button onclick="closeModal('modalNewExpenseCategory')" class="text-slate-400 hover:text-slate-600 font-bold text-xl">&times;</button>
+      </div>
+      <form onsubmit="handleCreateExpenseCategory(event)" class="space-y-3">
+        <div class="grid grid-cols-4 gap-2">
+          <div class="col-span-1">
+            <label class="block text-xs font-bold text-slate-600 mb-1">Ícono</label>
+            <select id="expCatIcon" class="w-full px-2 py-2 border rounded-xl text-base text-center bg-white">
+              <option value="💡">💡</option>
+              <option value="💧">💧</option>
+              <option value="🔥">🔥</option>
+              <option value="🧹">🧹</option>
+              <option value="🛠️">🛠️</option>
+              <option value="⏱️">⏱️</option>
+              <option value="🏀">🏀</option>
+              <option value="📦">📦</option>
+              <option value="🛡️">🛡️</option>
+              <option value="🔊">🔊</option>
+              <option value="📌" selected>📌</option>
+              <option value="🧾">🧾</option>
+              <option value="🏛️">🏛️</option>
+              <option value="⚖️">⚖️</option>
+            </select>
+          </div>
+          <div class="col-span-3">
+            <label class="block text-xs font-bold text-slate-600 mb-1">Nombre del Rubro / Servicio</label>
+            <input type="text" id="expCatName" required placeholder="Ej: Servicios - Luz (EDET), Gas, Seguro..." class="w-full px-3 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-tucuman-sky">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Descripción / Alcance</label>
+          <textarea id="expCatDesc" rows="2" placeholder="Ej: Factura mensual de EDET para suministro eléctrico del estadio y sede" class="w-full px-3 py-2 border rounded-xl text-sm"></textarea>
+        </div>
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeModal('modalNewExpenseCategory')" class="flex-1 border py-2.5 rounded-xl text-sm font-semibold text-slate-600">Cancelar</button>
+          <button type="submit" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl text-sm shadow-sm transition">Guardar Rubro</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: EDITAR CATEGORÍA DE GASTO (ADMIN) -->
+  <div id="modalEditExpenseCategory" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl">
+      <div class="flex justify-between items-center">
+        <div>
+          <h3 class="font-extrabold text-lg text-tucuman-navy">✏️ Modificar Rubro de Gasto</h3>
+          <p class="text-xs text-slate-500">Actualiza la denominación o el estado del rubro</p>
+        </div>
+        <button onclick="closeModal('modalEditExpenseCategory')" class="text-slate-400 hover:text-slate-600 font-bold text-xl">&times;</button>
+      </div>
+      <form onsubmit="handleUpdateExpenseCategory(event)" class="space-y-3">
+        <input type="hidden" id="editExpCatId">
+        <div class="grid grid-cols-4 gap-2">
+          <div class="col-span-1">
+            <label class="block text-xs font-bold text-slate-600 mb-1">Ícono</label>
+            <select id="editExpCatIcon" class="w-full px-2 py-2 border rounded-xl text-base text-center bg-white">
+              <option value="💡">💡</option>
+              <option value="💧">💧</option>
+              <option value="🔥">🔥</option>
+              <option value="🧹">🧹</option>
+              <option value="🛠️">🛠️</option>
+              <option value="⏱️">⏱️</option>
+              <option value="🏀">🏀</option>
+              <option value="📦">📦</option>
+              <option value="🛡️">🛡️</option>
+              <option value="🔊">🔊</option>
+              <option value="📌">📌</option>
+              <option value="🧾">🧾</option>
+              <option value="🏛️">🏛️</option>
+              <option value="⚖️">⚖️</option>
+            </select>
+          </div>
+          <div class="col-span-3">
+            <label class="block text-xs font-bold text-slate-600 mb-1">Nombre del Rubro</label>
+            <input type="text" id="editExpCatName" required class="w-full px-3 py-2 border rounded-xl text-sm">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Descripción</label>
+          <textarea id="editExpCatDesc" rows="2" class="w-full px-3 py-2 border rounded-xl text-sm"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Estado</label>
+          <select id="editExpCatIsActive" class="w-full px-3 py-2 border rounded-xl text-sm bg-white font-semibold">
+            <option value="true">Activo / Disponible</option>
+            <option value="false">Inactivo / En desuso</option>
+          </select>
+        </div>
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeModal('modalEditExpenseCategory')" class="flex-1 border py-2.5 rounded-xl text-sm font-semibold text-slate-600">Cancelar</button>
           <button type="submit" class="flex-1 bg-tucuman-navy hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl text-sm shadow-sm transition">Guardar Cambios</button>
         </div>
       </form>
@@ -2116,6 +2382,30 @@
       }
     ];
 
+    // ESPACIOS E INSTALACIONES DEL CLUB DISPONIBLES PARA ALQUILER (CONFIGURABLE POR ADMIN)
+    let rentalFacilities = [
+      { id: 1, name: 'Salón Principal', description: '1er Piso con mesas, sillas y heladera', suggested_price: 80000, is_active: true },
+      { id: 2, name: 'Cancha de Básquet', description: 'Parqué principal oficial para torneos y eventos deportivos', suggested_price: 120000, is_active: true },
+      { id: 3, name: 'Quincho / Asador y Patio', description: 'Área de asadores con parrilla, mesas, iluminación y baños', suggested_price: 50000, is_active: true },
+      { id: 4, name: 'Salón Multiuso (Gimnasio)', description: 'Salón amplio para danzas, talleres o reuniones', suggested_price: 45000, is_active: true },
+      { id: 5, name: 'Instalaciones Completas del Club', description: 'Uso exclusivo total de la sede social y deportiva', suggested_price: 250000, is_active: true }
+    ];
+
+    // RUBROS Y CATEGORÍAS DE GASTOS OPERATIVOS (CONFIGURABLE POR ADMIN)
+    let expenseCategories = [
+      { id: 1, name: 'Servicios - Luz (EDET)', icon: '💡', description: 'Factura mensual de energía eléctrica de la sede', is_active: true },
+      { id: 2, name: 'Servicios - Agua (SAT)', icon: '💧', description: 'Factura mensual de servicio de agua corriente', is_active: true },
+      { id: 3, name: 'Servicios - Gas', icon: '🔥', description: 'Gas natural o garrafas para cocina y termotanques', is_active: true },
+      { id: 4, name: 'Limpieza e Higiene', icon: '🧹', description: 'Artículos de desinfección, bolsas, lavandina y personal', is_active: true },
+      { id: 5, name: 'Mantenimiento e Infraestructura', icon: '🛠️', description: 'Pintura, plomería, electricidad, cerrajería y obras', is_active: true },
+      { id: 6, name: 'Arbitraje y Planilleros', icon: '⏱️', description: 'Honorarios de árbitros y jueces de mesa en torneos', is_active: true },
+      { id: 7, name: 'Elementos Deportivos / Básquet', icon: '🏀', description: 'Balones, redes, aros, conos y pecheras', is_active: true },
+      { id: 8, name: 'Insumos de Secretaría y Oficina', icon: '📦', description: 'Papel A4, tinta para impresora, talonarios y útiles', is_active: true },
+      { id: 9, name: 'Seguros y Emergencias Médicas', icon: '🛡️', description: 'Póliza de espectadores y servicio de ambulancia', is_active: true },
+      { id: 10, name: 'Sonido y Animación Eventos', icon: '🔊', description: 'Alquiler de equipos de audio para eventos del club', is_active: true },
+      { id: 11, name: 'Varios / Otros Egresos', icon: '📌', description: 'Gastos menores de caja chica no catalogados', is_active: true }
+    ];
+
     let cashflowSubTab = 'rentals';
 
     // ROLES Y USUARIOS DEL SISTEMA
@@ -2198,6 +2488,14 @@
       if (savedExpenses) {
         try { expenses = JSON.parse(savedExpenses); } catch(e) {}
       }
+      const savedFacilities = localStorage.getItem('tbb_facilities');
+      const savedExpenseCategories = localStorage.getItem('tbb_expense_categories');
+      if (savedFacilities) {
+        try { rentalFacilities = JSON.parse(savedFacilities); } catch(e) {}
+      }
+      if (savedExpenseCategories) {
+        try { expenseCategories = JSON.parse(savedExpenseCategories); } catch(e) {}
+      }
 
       document.getElementById('cfgClubName').value = clubSettings.clubName;
       document.getElementById('cfgClubEmail').value = clubSettings.officialGmail;
@@ -2218,6 +2516,8 @@
       localStorage.setItem('tbb_talonarios', JSON.stringify(talonarios));
       localStorage.setItem('tbb_rentals', JSON.stringify(rentals));
       localStorage.setItem('tbb_expenses', JSON.stringify(expenses));
+      localStorage.setItem('tbb_facilities', JSON.stringify(rentalFacilities));
+      localStorage.setItem('tbb_expense_categories', JSON.stringify(expenseCategories));
       localStorage.setItem('tbb_users', JSON.stringify(clubUsers));
       localStorage.setItem('tbb_current_user', JSON.stringify(currentUser));
     }
@@ -2766,6 +3066,10 @@
       renderActivitiesGrid();
       renderPaymentsLedger();
       renderCashflowView();
+      populateFacilitySelects();
+      populateExpenseCategorySelects();
+      renderFacilitiesTable();
+      renderExpenseCategoriesTable();
     }
 
     function formatMoney(amount) {
@@ -4013,14 +4317,17 @@
       const vRentals = document.getElementById('cashflowSubViewRentals');
       const vExpenses = document.getElementById('cashflowSubViewExpenses');
       const vRendicion = document.getElementById('cashflowSubViewRendicion');
+      const vConfig = document.getElementById('cashflowSubViewConfig');
 
       const btnRentals = document.getElementById('subTabCashflowRentals');
       const btnExpenses = document.getElementById('subTabCashflowExpenses');
       const btnRendicion = document.getElementById('subTabCashflowRendicion');
+      const btnConfig = document.getElementById('subTabCashflowConfig');
 
       if (vRentals) vRentals.classList.toggle('hidden', subTab !== 'rentals');
       if (vExpenses) vExpenses.classList.toggle('hidden', subTab !== 'expenses');
       if (vRendicion) vRendicion.classList.toggle('hidden', subTab !== 'rendicion');
+      if (vConfig) vConfig.classList.toggle('hidden', subTab !== 'config');
 
       const activeClasses = ['border-tucuman-navy', 'text-tucuman-navy'];
       const inactiveClasses = ['border-transparent', 'text-slate-500'];
@@ -4052,10 +4359,23 @@
           btnRendicion.classList.add(...inactiveClasses);
         }
       }
+      if (btnConfig) {
+        if (subTab === 'config') {
+          btnConfig.classList.add(...activeClasses);
+          btnConfig.classList.remove(...inactiveClasses);
+        } else {
+          btnConfig.classList.remove(...activeClasses);
+          btnConfig.classList.add(...inactiveClasses);
+        }
+      }
 
       if (subTab === 'rentals') renderRentalsTable();
       else if (subTab === 'expenses') renderExpensesTable();
       else if (subTab === 'rendicion') renderRendicionSummary();
+      else if (subTab === 'config') {
+        renderFacilitiesTable();
+        renderExpenseCategoriesTable();
+      }
     }
 
     function calculateRentalBalancePending(mode) {
@@ -4312,13 +4632,15 @@
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
 
+        const catObj = expenseCategories.find(c => c.name === x.category);
+        const catIcon = catObj ? (catObj.icon || '📌') : '📌';
         const badgeClass = catBadges[x.category] || 'bg-slate-100 text-slate-700 border-slate-200';
 
         tr.innerHTML = `
           <td class="py-3 px-3.5 whitespace-nowrap font-bold text-slate-800">${x.expense_date || '-'}</td>
           <td class="py-3 px-3.5 whitespace-nowrap">
             <span class="px-2 py-0.5 text-[10px] font-bold rounded-full border ${badgeClass}">
-              ${x.category}
+              ${catIcon} ${x.category}
             </span>
           </td>
           <td class="py-3 px-3.5">
@@ -4590,6 +4912,423 @@
         saveToLocalStorage();
         refreshAllViews();
         await deleteExpenseFromSupabase(id);
+      }
+    }
+
+    // ====================================================================
+    // GESTIÓN DE ESPACIOS DE ALQUILER Y RUBROS DE GASTOS (ADMIN)
+    // ====================================================================
+
+    function openManageFacilities() {
+      closeModal('modalNewRental');
+      closeModal('modalEditRental');
+      switchTab('cashflow');
+      switchCashflowSubTab('config');
+    }
+
+    function openManageExpenseCategories() {
+      closeModal('modalNewExpense');
+      closeModal('modalEditExpense');
+      switchTab('cashflow');
+      switchCashflowSubTab('config');
+    }
+
+    function populateFacilitySelects() {
+      const sNew = document.getElementById('rentalFacility');
+      const sEdit = document.getElementById('editRentalFacility');
+      
+      const activeFacilities = rentalFacilities.filter(f => f.is_active !== false);
+
+      const html = activeFacilities.map(f => `
+        <option value="${f.name}">${f.name} ${f.suggested_price > 0 ? `(Sugerido: ${formatMoney(f.suggested_price)})` : ''}</option>
+      `).join('') + `<option value="Otro Espacio">Otro Espacio No Catalogado</option>`;
+
+      if (sNew) {
+        const currentVal = sNew.value;
+        sNew.innerHTML = html;
+        if (currentVal && activeFacilities.some(f => f.name === currentVal)) sNew.value = currentVal;
+      }
+      if (sEdit) {
+        const currentVal = sEdit.value;
+        sEdit.innerHTML = html;
+        if (currentVal) sEdit.value = currentVal;
+      }
+    }
+
+    function onRentalFacilitySelectChanged(val) {
+      const f = rentalFacilities.find(x => x.name === val);
+      if (f && f.suggested_price > 0) {
+        const totalEl = document.getElementById('rentalTotalPrice');
+        if (totalEl && (!totalEl.value || Number(totalEl.value) === 0)) {
+          totalEl.value = f.suggested_price;
+          calculateRentalBalancePending('new');
+        }
+      }
+    }
+
+    function populateExpenseCategorySelects() {
+      const sNew = document.getElementById('expenseCategory');
+      const sEdit = document.getElementById('editExpenseCategory');
+      const sFilter = document.getElementById('filterExpenseCategory');
+
+      const activeCategories = expenseCategories.filter(c => c.is_active !== false);
+
+      const optionsHtml = activeCategories.map(c => `
+        <option value="${c.name}">${c.icon || '📌'} ${c.name}</option>
+      `).join('');
+
+      if (sNew) {
+        const currentVal = sNew.value;
+        sNew.innerHTML = optionsHtml;
+        if (currentVal && activeCategories.some(c => c.name === currentVal)) sNew.value = currentVal;
+      }
+      if (sEdit) {
+        const currentVal = sEdit.value;
+        sEdit.innerHTML = optionsHtml;
+        if (currentVal) sEdit.value = currentVal;
+      }
+      if (sFilter) {
+        const currentFilter = sFilter.value;
+        sFilter.innerHTML = `<option value="all">Todas las categorías</option>` + activeCategories.map(c => `
+          <option value="${c.name}">${c.icon || '📌'} ${c.name}</option>
+        `).join('');
+        if (currentFilter) sFilter.value = currentFilter;
+      }
+    }
+
+    function renderFacilitiesTable() {
+      const tbody = document.getElementById('facilitiesTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      if (rentalFacilities.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-slate-400">No hay espacios cargados.</td></tr>`;
+        return;
+      }
+
+      rentalFacilities.forEach(f => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
+
+        const statusBadge = f.is_active !== false
+          ? `<span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800">Disponible</span>`
+          : `<span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-slate-200 text-slate-600">Inactivo</span>`;
+
+        tr.innerHTML = `
+          <td class="py-2.5 px-3">
+            <span class="font-bold text-slate-900 block">${f.name}</span>
+            ${f.description ? `<span class="text-[11px] text-slate-500 block">${f.description}</span>` : ''}
+          </td>
+          <td class="py-2.5 px-3 font-mono font-bold text-emerald-700">
+            ${f.suggested_price > 0 ? formatMoney(f.suggested_price) : '<span class="text-slate-400 font-normal">A convenir</span>'}
+          </td>
+          <td class="py-2.5 px-3 whitespace-nowrap">${statusBadge}</td>
+          <td class="py-2.5 px-3 text-right whitespace-nowrap space-x-1">
+            <button onclick="openEditFacilityModal(${f.id})" class="px-2 py-1 bg-sky-50 text-sky-800 hover:bg-sky-100 font-bold rounded-lg border border-sky-200 text-xs transition" title="Editar">
+              ✏️
+            </button>
+            ${currentUser.role_code === 'admin' ? `
+            <button onclick="deleteFacility(${f.id})" class="px-2 py-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg text-xs transition" title="Eliminar">
+              🗑️
+            </button>` : ''}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderExpenseCategoriesTable() {
+      const tbody = document.getElementById('expenseCategoriesTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      if (expenseCategories.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-slate-400">No hay rubros de gastos cargados.</td></tr>`;
+        return;
+      }
+
+      expenseCategories.forEach(c => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
+
+        const statusBadge = c.is_active !== false
+          ? `<span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800">Activo</span>`
+          : `<span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-slate-200 text-slate-600">Inactivo</span>`;
+
+        tr.innerHTML = `
+          <td class="py-2.5 px-3 whitespace-nowrap">
+            <span class="font-bold text-slate-900 flex items-center gap-1.5">
+              <span class="text-base">${c.icon || '📌'}</span> ${c.name}
+            </span>
+          </td>
+          <td class="py-2.5 px-3 text-[11px] text-slate-500">${c.description || '-'}</td>
+          <td class="py-2.5 px-3 whitespace-nowrap">${statusBadge}</td>
+          <td class="py-2.5 px-3 text-right whitespace-nowrap space-x-1">
+            <button onclick="openEditExpenseCategoryModal(${c.id})" class="px-2 py-1 bg-sky-50 text-sky-800 hover:bg-sky-100 font-bold rounded-lg border border-sky-200 text-xs transition" title="Editar">
+              ✏️
+            </button>
+            ${currentUser.role_code === 'admin' ? `
+            <button onclick="deleteExpenseCategory(${c.id})" class="px-2 py-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg text-xs transition" title="Eliminar">
+              🗑️
+            </button>` : ''}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // CRUD DE ESPACIOS
+    async function handleCreateFacility(e) {
+      e.preventDefault();
+      if (currentUser.role_code !== 'admin') {
+        alert('🚫 Permiso Denegado: Solo el Administrador puede agregar nuevos espacios.');
+        return;
+      }
+
+      const name = document.getElementById('facilityName').value.trim();
+      if (!name) return;
+
+      if (rentalFacilities.some(f => f.name.toLowerCase() === name.toLowerCase())) {
+        alert('⚠️ Ya existe un espacio o sector registrado con ese nombre.');
+        return;
+      }
+
+      const newFacility = {
+        id: Date.now(),
+        name: name,
+        description: document.getElementById('facilityDesc').value.trim(),
+        suggested_price: Number(document.getElementById('facilityPrice').value) || 0,
+        is_active: true
+      };
+
+      rentalFacilities.push(newFacility);
+      saveToLocalStorage();
+      closeModal('modalNewFacility');
+      e.target.reset();
+      populateFacilitySelects();
+      renderFacilitiesTable();
+
+      await syncFacilityToSupabase(newFacility, false);
+      alert(`✅ Espacio "${newFacility.name}" guardado exitosamente.`);
+    }
+
+    function openEditFacilityModal(id) {
+      if (currentUser.role_code !== 'admin') {
+        alert('🚫 Permiso Denegado: Solo el Administrador puede editar espacios.');
+        return;
+      }
+      const f = rentalFacilities.find(x => x.id === id);
+      if (!f) return;
+
+      document.getElementById('editFacilityId').value = f.id;
+      document.getElementById('editFacilityName').value = f.name;
+      document.getElementById('editFacilityDesc').value = f.description || '';
+      document.getElementById('editFacilityPrice').value = f.suggested_price || '';
+      document.getElementById('editFacilityIsActive').value = f.is_active !== false ? 'true' : 'false';
+
+      openModal('modalEditFacility');
+    }
+
+    async function handleUpdateFacility(e) {
+      e.preventDefault();
+      if (currentUser.role_code !== 'admin') {
+        alert('🚫 Permiso Denegado: Solo el Administrador puede actualizar espacios.');
+        return;
+      }
+
+      const id = Number(document.getElementById('editFacilityId').value);
+      const f = rentalFacilities.find(x => x.id === id);
+      if (!f) return;
+
+      f.name = document.getElementById('editFacilityName').value.trim();
+      f.description = document.getElementById('editFacilityDesc').value.trim();
+      f.suggested_price = Number(document.getElementById('editFacilityPrice').value) || 0;
+      f.is_active = document.getElementById('editFacilityIsActive').value === 'true';
+
+      saveToLocalStorage();
+      closeModal('modalEditFacility');
+      populateFacilitySelects();
+      renderFacilitiesTable();
+
+      await syncFacilityToSupabase(f, true);
+    }
+
+    async function deleteFacility(id) {
+      if (currentUser.role_code !== 'admin') {
+        alert('🚫 Permiso Denegado: Solo el Administrador puede eliminar espacios de alquiler.');
+        return;
+      }
+      const f = rentalFacilities.find(x => x.id === id);
+      if (!f) return;
+
+      if (confirm(`¿Estás seguro de eliminar el espacio "${f.name}"?\n(Si hay alquileres históricos con este espacio, se conservarán en los registros anteriores).`)) {
+        rentalFacilities = rentalFacilities.filter(x => x.id !== id);
+        saveToLocalStorage();
+        populateFacilitySelects();
+        renderFacilitiesTable();
+        await deleteFacilityFromSupabase(id);
+      }
+    }
+
+    // CRUD DE CATEGORÍAS DE GASTO
+    async function handleCreateExpenseCategory(e) {
+      e.preventDefault();
+      if (currentUser.role_code !== 'admin') {
+        alert('🚫 Permiso Denegado: Solo el Administrador puede agregar nuevos rubros de gasto.');
+        return;
+      }
+
+      const name = document.getElementById('expCatName').value.trim();
+      if (!name) return;
+
+      if (expenseCategories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
+        alert('⚠️ Ya existe un rubro o categoría de gasto con ese nombre.');
+        return;
+      }
+
+      const newCat = {
+        id: Date.now(),
+        icon: document.getElementById('expCatIcon').value || '📌',
+        name: name,
+        description: document.getElementById('expCatDesc').value.trim(),
+        is_active: true
+      };
+
+      expenseCategories.push(newCat);
+      saveToLocalStorage();
+      closeModal('modalNewExpenseCategory');
+      e.target.reset();
+      populateExpenseCategorySelects();
+      renderExpenseCategoriesTable();
+
+      await syncExpenseCategoryToSupabase(newCat, false);
+      alert(`✅ Rubro de gasto "${newCat.name}" creado exitosamente.`);
+    }
+
+    function openEditExpenseCategoryModal(id) {
+      if (currentUser.role_code !== 'admin') {
+        alert('🚫 Permiso Denegado: Solo el Administrador puede editar rubros de gasto.');
+        return;
+      }
+      const c = expenseCategories.find(x => x.id === id);
+      if (!c) return;
+
+      document.getElementById('editExpCatId').value = c.id;
+      document.getElementById('editExpCatIcon').value = c.icon || '📌';
+      document.getElementById('editExpCatName').value = c.name;
+      document.getElementById('editExpCatDesc').value = c.description || '';
+      document.getElementById('editExpCatIsActive').value = c.is_active !== false ? 'true' : 'false';
+
+      openModal('modalEditExpenseCategory');
+    }
+
+    async function handleUpdateExpenseCategory(e) {
+      e.preventDefault();
+      if (currentUser.role_code !== 'admin') {
+        alert('🚫 Permiso Denegado: Solo el Administrador puede modificar rubros de gasto.');
+        return;
+      }
+
+      const id = Number(document.getElementById('editExpCatId').value);
+      const c = expenseCategories.find(x => x.id === id);
+      if (!c) return;
+
+      c.icon = document.getElementById('editExpCatIcon').value || '📌';
+      c.name = document.getElementById('editExpCatName').value.trim();
+      c.description = document.getElementById('editExpCatDesc').value.trim();
+      c.is_active = document.getElementById('editExpCatIsActive').value === 'true';
+
+      saveToLocalStorage();
+      closeModal('modalEditExpenseCategory');
+      populateExpenseCategorySelects();
+      renderExpenseCategoriesTable();
+      renderExpensesTable();
+
+      await syncExpenseCategoryToSupabase(c, true);
+    }
+
+    async function deleteExpenseCategory(id) {
+      if (currentUser.role_code !== 'admin') {
+        alert('🚫 Permiso Denegado: Solo el Administrador puede eliminar rubros de gastos.');
+        return;
+      }
+      const c = expenseCategories.find(x => x.id === id);
+      if (!c) return;
+
+      if (confirm(`¿Estás seguro de eliminar el rubro de gasto "${c.name}"?\n(Los comprobantes anteriores mantendrán su historial).`)) {
+        expenseCategories = expenseCategories.filter(x => x.id !== id);
+        saveToLocalStorage();
+        populateExpenseCategorySelects();
+        renderExpenseCategoriesTable();
+        renderExpensesTable();
+        await deleteExpenseCategoryFromSupabase(id);
+      }
+    }
+
+    // SINCRONIZACIÓN DE ESPACIOS Y CATEGORÍAS CON SUPABASE
+    async function syncFacilityToSupabase(facility, isUpdate = false) {
+      if (!supabaseClient) return;
+      try {
+        const payload = {
+          name: facility.name,
+          description: facility.description || '',
+          suggested_price: facility.suggested_price || 0,
+          is_active: facility.is_active !== false
+        };
+
+        if (isUpdate && facility.id && facility.id < 1000000000) {
+          await supabaseClient.from('club_facilities').update(payload).eq('id', facility.id);
+        } else {
+          const { data, error } = await supabaseClient.from('club_facilities').upsert(payload, { onConflict: 'name' }).select();
+          if (!error && data && data[0]) {
+            facility.id = data[0].id;
+            saveToLocalStorage();
+          }
+        }
+      } catch (err) {
+        console.warn('Error syncFacilityToSupabase:', err);
+      }
+    }
+
+    async function deleteFacilityFromSupabase(id) {
+      if (!supabaseClient) return;
+      try {
+        await supabaseClient.from('club_facilities').delete().eq('id', id);
+      } catch(e) {
+        console.error('Error al borrar espacio de Supabase:', e);
+      }
+    }
+
+    async function syncExpenseCategoryToSupabase(cat, isUpdate = false) {
+      if (!supabaseClient) return;
+      try {
+        const payload = {
+          name: cat.name,
+          icon: cat.icon || '📌',
+          description: cat.description || '',
+          is_active: cat.is_active !== false
+        };
+
+        if (isUpdate && cat.id && cat.id < 1000000000) {
+          await supabaseClient.from('club_expense_categories').update(payload).eq('id', cat.id);
+        } else {
+          const { data, error } = await supabaseClient.from('club_expense_categories').upsert(payload, { onConflict: 'name' }).select();
+          if (!error && data && data[0]) {
+            cat.id = data[0].id;
+            saveToLocalStorage();
+          }
+        }
+      } catch (err) {
+        console.warn('Error syncExpenseCategoryToSupabase:', err);
+      }
+    }
+
+    async function deleteExpenseCategoryFromSupabase(id) {
+      if (!supabaseClient) return;
+      try {
+        await supabaseClient.from('club_expense_categories').delete().eq('id', id);
+      } catch(e) {
+        console.error('Error al borrar rubro de Supabase:', e);
       }
     }
 
@@ -5321,6 +6060,38 @@
           }
         } catch (eExpenses) {
           console.warn('Tabla club_expenses no accesible:', eExpenses);
+        }
+
+        // 9. Espacios e Instalaciones para Alquileres
+        try {
+          const { data: dbFacilities, error: errFac } = await supabaseClient.from('club_facilities').select('*').order('id');
+          if (!errFac && dbFacilities && dbFacilities.length > 0) {
+            rentalFacilities = dbFacilities.map(f => ({
+              id: f.id,
+              name: f.name,
+              description: f.description || '',
+              suggested_price: Number(f.suggested_price || 0),
+              is_active: f.is_active !== false
+            }));
+          }
+        } catch (eFac) {
+          console.warn('Tabla club_facilities aún no creada en Supabase:', eFac);
+        }
+
+        // 10. Rubros y Categorías de Gastos
+        try {
+          const { data: dbExpCats, error: errExpCats } = await supabaseClient.from('club_expense_categories').select('*').order('id');
+          if (!errExpCats && dbExpCats && dbExpCats.length > 0) {
+            expenseCategories = dbExpCats.map(c => ({
+              id: c.id,
+              name: c.name,
+              icon: c.icon || '📌',
+              description: c.description || '',
+              is_active: c.is_active !== false
+            }));
+          }
+        } catch (eExpCats) {
+          console.warn('Tabla club_expense_categories aún no creada en Supabase:', eExpCats);
         }
 
         saveToLocalStorage();
