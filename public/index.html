@@ -51,7 +51,7 @@
       <div class="flex items-center justify-between h-16">
         <!-- Logo y Nombre del Club -->
         <div class="flex items-center gap-3">
-          <img src="club_logo.jpg?v=20260930" alt="Logo Club Tucumán BB" class="w-12 h-12 rounded-full object-cover border-2 border-white shadow-md bg-white shrink-0" onerror="this.outerHTML='<div class=\'w-12 h-12 rounded-full bg-tucuman-sky flex items-center justify-center font-black text-white text-lg border-2 border-white shadow\'>TBB</div>'">
+          <img src="club_logo.jpg?v=20261001" alt="Logo Club Tucumán BB" class="w-12 h-12 rounded-full object-cover border-2 border-white shadow-md bg-white shrink-0" onerror="if(!this.dataset.triedPng){this.dataset.triedPng=1;this.src='club_logo.png?v=20261001';}else{this.outerHTML='<div class=\'w-12 h-12 rounded-full bg-tucuman-sky flex items-center justify-center font-black text-white text-lg border-2 border-white shadow\'>TBB</div>';}">
           <div>
             <h1 class="text-lg font-extrabold tracking-tight leading-tight" id="headerClubName">Club Tucumán BB</h1>
             <p class="text-xs text-sky-300 font-medium">Sistema Oficial de Cuotas & Actividades</p>
@@ -944,7 +944,7 @@
       <div id="printableReceipt" class="p-6 bg-slate-50 border-2 border-slate-200 rounded-xl space-y-4">
         <!-- Encabezado del Recibo -->
         <div class="text-center border-b pb-3">
-          <img src="club_logo.jpg?v=20260930" alt="Logo Club Tucumán BB" class="w-14 h-14 rounded-full mx-auto object-cover mb-2 border-2 border-slate-200 shadow-sm bg-white" onerror="this.style.display='none'">
+          <img src="club_logo.jpg?v=20261001" alt="Logo Club Tucumán BB" class="w-14 h-14 rounded-full mx-auto object-cover mb-2 border-2 border-slate-200 shadow-sm bg-white" onerror="if(!this.dataset.triedPng){this.dataset.triedPng=1;this.src='club_logo.png?v=20261001';}else{this.style.display='none';}">
           <h2 class="text-xl font-black text-tucuman-navy tracking-tight">CLUB TUCUMÁN BB</h2>
           <p class="text-xs text-slate-500">Fundado para la pasión del básquetbol y el deporte</p>
           <p class="text-xs font-semibold text-slate-600">Suipacha 1160 - San Miguel de Tucumán</p>
@@ -1014,7 +1014,7 @@
     <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl">
       <div class="flex justify-between items-center border-b pb-3">
         <div class="flex items-center gap-3">
-          <img src="club_logo.jpg?v=20260930" alt="Logo" class="w-10 h-10 rounded-full object-cover border border-slate-300 shadow-xs bg-white shrink-0" onerror="this.outerHTML='<span class=\'text-xl\'>👤</span>'">
+          <img src="club_logo.jpg?v=20261001" alt="Logo" class="w-10 h-10 rounded-full object-cover border border-slate-300 shadow-xs bg-white shrink-0" onerror="if(!this.dataset.triedPng){this.dataset.triedPng=1;this.src='club_logo.png?v=20261001';}else{this.outerHTML='<span class=\'text-xl\'>👤</span>';}">
           <div>
             <h3 class="text-base font-bold text-tucuman-navy">Perfil y Rol Activo</h3>
             <p class="text-xs text-slate-500">Selecciona con qué usuario deseas operar en el club</p>
@@ -2835,7 +2835,7 @@
       populateBasketballCategorySelects();
       refreshAllViews();
 
-      await syncBasketballCategoryToSupabase(cat);
+      await syncBasketballCategoryToSupabase(cat, true);
     }
 
     async function deleteBasketballCategory(id) {
@@ -2856,10 +2856,10 @@
       }
     }
 
-    async function syncBasketballCategoryToSupabase(cat) {
+    async function syncBasketballCategoryToSupabase(cat, isUpdate = false) {
       if (!supabaseClient) return;
       try {
-        await supabaseClient.from('basketball_categories').upsert({
+        const payload = {
           name: cat.name,
           age_range: cat.age_range || '',
           coach_user_id: cat.coach_user_id,
@@ -2867,7 +2867,16 @@
           schedule: cat.schedule || '',
           color_hex: cat.color_hex || '#EA580C',
           is_active: cat.is_active !== false
-        });
+        };
+        if (isUpdate && cat.id) {
+          await supabaseClient.from('basketball_categories').update(payload).eq('id', cat.id);
+        } else {
+          const { data, error } = await supabaseClient.from('basketball_categories').insert(payload).select();
+          if (data && data[0]) {
+            cat.id = data[0].id;
+            saveToLocalStorage();
+          }
+        }
       } catch (err) {
         console.warn('Error al sincronizar categoría con Supabase:', err);
       }
@@ -2912,7 +2921,7 @@
       closeModal('modalEditActivity');
       refreshAllViews();
 
-      await syncActivityToSupabase(a);
+      await syncActivityToSupabase(a, true);
     }
 
     // ACCIONES: COBRO DE CUOTA (TALONARIO OFICIAL)
@@ -3417,18 +3426,23 @@
     async function loadDataFromSupabase() {
       if (!supabaseClient) return;
       try {
-        // 1. Actividades
+        // 1. Actividades (Deduplicación inteligente por nombre en caso de duplicados históricos)
         const { data: dbActs, error: errActs } = await supabaseClient.from('activities').select('*').order('id');
         if (!errActs && dbActs && dbActs.length > 0) {
-          activities = dbActs.map(a => ({
-            id: a.id,
-            name: a.name,
-            category: a.category || 'General',
-            monthly_fee: Number(a.monthly_fee),
-            schedule: a.schedule || '',
-            description: a.description || '',
-            color_hex: a.color_hex || '#0EA5E9'
-          }));
+          const actMap = new Map();
+          dbActs.forEach(a => {
+            const cleanName = (a.name || '').trim().toLowerCase();
+            actMap.set(cleanName, {
+              id: a.id,
+              name: a.name,
+              category: a.category || 'General',
+              monthly_fee: Number(a.monthly_fee),
+              schedule: a.schedule || '',
+              description: a.description || '',
+              color_hex: a.color_hex || '#0EA5E9'
+            });
+          });
+          activities = Array.from(actMap.values());
         }
 
         // 2. Socios y sus actividades
@@ -3622,18 +3636,37 @@
       }
     }
 
-    async function syncActivityToSupabase(activity) {
+    async function syncActivityToSupabase(activity, isUpdate = false) {
       if (!supabaseClient) return;
       try {
-        const { error } = await supabaseClient.from('activities').insert({
+        const payload = {
           name: activity.name,
           category: activity.category,
           monthly_fee: activity.monthly_fee,
           schedule: activity.schedule,
           description: activity.description,
           color_hex: activity.color_hex || '#0EA5E9'
-        });
-        if (error) console.error('Error al guardar actividad en Supabase:', error);
+        };
+
+        if (isUpdate && activity.id) {
+          const { error } = await supabaseClient
+            .from('activities')
+            .update(payload)
+            .eq('id', activity.id);
+          if (error) console.error('Error al actualizar actividad en Supabase:', error);
+          else console.log('Actividad actualizada en Supabase con éxito (ID:', activity.id, ')');
+        } else {
+          const { data, error } = await supabaseClient
+            .from('activities')
+            .insert(payload)
+            .select();
+          if (error) {
+            console.error('Error al guardar actividad en Supabase:', error);
+          } else if (data && data[0]) {
+            activity.id = data[0].id;
+            saveToLocalStorage();
+          }
+        }
       } catch (err) {
         console.error('Error syncActivityToSupabase:', err);
       }

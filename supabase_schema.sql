@@ -114,6 +114,13 @@ CREATE TABLE IF NOT EXISTS club_users (
 -- DATOS INICIALES (SEMILLA) PARA CLUB TUCUMÁN BB
 -- ====================================================================
 
+-- Asegurar columnas si la tabla ya existía previamente en Supabase
+ALTER TABLE club_settings ADD COLUMN IF NOT EXISTS pos_number INT DEFAULT 1;
+ALTER TABLE club_settings ADD COLUMN IF NOT EXISTS next_receipt_number INT DEFAULT 1;
+ALTER TABLE club_settings ADD COLUMN IF NOT EXISTS receipt_prefix TEXT DEFAULT 'REC';
+ALTER TABLE club_settings ADD COLUMN IF NOT EXISTS logo_url TEXT DEFAULT '/club_logo.jpg';
+ALTER TABLE club_settings ADD COLUMN IF NOT EXISTS cbu_alias TEXT DEFAULT 'TUCUMAN.BB.OFICIAL';
+
 -- Configuración Institucional
 INSERT INTO club_settings (id, club_name, official_gmail, phone, address, cbu_alias, receipt_prefix, logo_url, pos_number, next_receipt_number)
 VALUES (1, 'Club Tucumán BB', 'tucumanbbcuotas@gmail.com', '+54 381 423-1234', 'Suipacha 1160, San Miguel de Tucumán', 'TUCUMAN.BB.OFICIAL', 'REC', '/club_logo.jpg', 1, 1)
@@ -218,30 +225,48 @@ ALTER TABLE roles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE club_users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE basketball_categories ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Permitir lectura publica" ON club_settings;
+DROP POLICY IF EXISTS "Permitir modificacion" ON club_settings;
 CREATE POLICY "Permitir lectura publica" ON club_settings FOR SELECT USING (true);
 CREATE POLICY "Permitir modificacion" ON club_settings FOR ALL USING (true);
 
+DROP POLICY IF EXISTS "Permitir lectura publica" ON activities;
+DROP POLICY IF EXISTS "Permitir modificacion" ON activities;
 CREATE POLICY "Permitir lectura publica" ON activities FOR SELECT USING (true);
 CREATE POLICY "Permitir modificacion" ON activities FOR ALL USING (true);
 
+DROP POLICY IF EXISTS "Permitir lectura publica" ON members;
+DROP POLICY IF EXISTS "Permitir modificacion" ON members;
 CREATE POLICY "Permitir lectura publica" ON members FOR SELECT USING (true);
 CREATE POLICY "Permitir modificacion" ON members FOR ALL USING (true);
 
+DROP POLICY IF EXISTS "Permitir lectura publica" ON member_activities;
+DROP POLICY IF EXISTS "Permitir modificacion" ON member_activities;
 CREATE POLICY "Permitir lectura publica" ON member_activities FOR SELECT USING (true);
 CREATE POLICY "Permitir modificacion" ON member_activities FOR ALL USING (true);
 
+DROP POLICY IF EXISTS "Permitir lectura publica" ON talonarios;
+DROP POLICY IF EXISTS "Permitir modificacion" ON talonarios;
 CREATE POLICY "Permitir lectura publica" ON talonarios FOR SELECT USING (true);
 CREATE POLICY "Permitir modificacion" ON talonarios FOR ALL USING (true);
 
+DROP POLICY IF EXISTS "Permitir lectura publica" ON payments;
+DROP POLICY IF EXISTS "Permitir modificacion" ON payments;
 CREATE POLICY "Permitir lectura publica" ON payments FOR SELECT USING (true);
 CREATE POLICY "Permitir modificacion" ON payments FOR ALL USING (true);
 
+DROP POLICY IF EXISTS "Permitir lectura publica" ON roles;
+DROP POLICY IF EXISTS "Permitir modificacion" ON roles;
 CREATE POLICY "Permitir lectura publica" ON roles FOR SELECT USING (true);
 CREATE POLICY "Permitir modificacion" ON roles FOR ALL USING (true);
 
+DROP POLICY IF EXISTS "Permitir lectura publica" ON club_users;
+DROP POLICY IF EXISTS "Permitir modificacion" ON club_users;
 CREATE POLICY "Permitir lectura publica" ON club_users FOR SELECT USING (true);
 CREATE POLICY "Permitir modificacion" ON club_users FOR ALL USING (true);
 
+DROP POLICY IF EXISTS "Permitir lectura publica" ON basketball_categories;
+DROP POLICY IF EXISTS "Permitir modificacion" ON basketball_categories;
 CREATE POLICY "Permitir lectura publica" ON basketball_categories FOR SELECT USING (true);
 CREATE POLICY "Permitir modificacion" ON basketball_categories FOR ALL USING (true);
 
