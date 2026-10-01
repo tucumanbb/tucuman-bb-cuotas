@@ -1,0 +1,17 @@
+{
+  "name": "Club Tucumán BB - Cuotas",
+  "short_name": "Tucumán BB",
+  "description": "Sistema Oficial de Gestión de Cuotas, Socios y Talonarios del Club Tucumán BB",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0B132B",
+  "theme_color": "#0B132B",
+  "icons": [
+    {
+      "src": "club_logo.jpg",
+      "sizes": "192x192 512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -2,8 +2,18 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Club Tucumán BB - Sistema de Cuotas y Actividades</title>
+  
+  <!-- Iconos y PWA Móvil -->
+  <link rel="icon" type="image/jpeg" href="club_logo.jpg?v=20261001">
+  <link rel="apple-touch-icon" href="club_logo.jpg?v=20261001">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0B132B">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Supabase JS Client CDN -->
@@ -38,8 +48,10 @@
     body { font-family: 'Plus Jakarta Sans', sans-serif; }
     @media print {
       body * { visibility: hidden; }
-      #printableReceipt, #printableReceipt * { visibility: visible; }
-      #printableReceipt { position: absolute; left: 0; top: 0; width: 100%; }
+      #printableReceipt, #printableReceipt *,
+      #printableRentalReceipt, #printableRentalReceipt *,
+      #printableRendicion, #printableRendicion * { visibility: visible; }
+      #printableReceipt, #printableRentalReceipt, #printableRendicion { position: absolute; left: 0; top: 0; width: 100%; }
     }
   </style>
 </head>
@@ -96,7 +108,10 @@
           🏀 Actividades
         </button>
         <button onclick="switchTab('payments')" id="nav-payments" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition text-slate-300 hover:text-white hover:bg-slate-800">
-          🧾 Caja & Recibos
+          🧾 Recibos de Cuotas
+        </button>
+        <button onclick="switchTab('cashflow')" id="nav-cashflow" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition text-slate-300 hover:text-white hover:bg-slate-800">
+          ⚖️ Alquileres, Gastos & Rendición
         </button>
         <button onclick="switchTab('config')" id="nav-config" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition text-slate-300 hover:text-white hover:bg-slate-800">
           🏢 Configuración Club
@@ -240,6 +255,40 @@
               <!-- Pagos dinámicos -->
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- RESUMEN DE CAJA & RENDICIÓN EN DASHBOARD -->
+      <div id="dashboardCashflowCard" class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-2xl p-6 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <span class="text-3xl">⚖️</span>
+            <div>
+              <h3 class="font-extrabold text-lg text-white">Caja, Alquileres & Rendición de Cuentas</h3>
+              <p class="text-xs text-slate-300">Ingresos por eventos particulares vs gastos operativos del club</p>
+            </div>
+          </div>
+          <button onclick="switchTab('cashflow')" class="bg-white/10 hover:bg-white/20 text-sky-200 border border-white/20 text-xs font-bold px-3.5 py-2 rounded-xl transition">
+            Abrir Libro de Caja & Rendición →
+          </button>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center pt-1">
+          <div class="bg-white/5 border border-white/10 p-3 rounded-xl">
+            <span class="text-[11px] text-emerald-400 font-bold uppercase block">Alquileres</span>
+            <span class="text-base font-black font-mono" id="dashKpiRentals">$ 0</span>
+          </div>
+          <div class="bg-white/5 border border-white/10 p-3 rounded-xl">
+            <span class="text-[11px] text-sky-300 font-bold uppercase block">Total Ingresos</span>
+            <span class="text-base font-black font-mono text-emerald-300" id="dashKpiTotalIncome">$ 0</span>
+          </div>
+          <div class="bg-white/5 border border-white/10 p-3 rounded-xl">
+            <span class="text-[11px] text-rose-400 font-bold uppercase block">Total Gastos</span>
+            <span class="text-base font-black font-mono text-rose-300" id="dashKpiTotalExpenses">$ 0</span>
+          </div>
+          <div class="bg-white/10 border border-white/20 p-3 rounded-xl">
+            <span class="text-[11px] text-amber-300 font-bold uppercase block">Saldo a Rendir</span>
+            <span class="text-base font-black font-mono text-amber-300" id="dashKpiNetBalance">$ 0</span>
+          </div>
         </div>
       </div>
 
@@ -416,7 +465,228 @@
       </div>
     </section>
 
-    <!-- 5. VISTA: CONFIGURACIÓN CLUB & GUÍA SUPABASE/VERCEL -->
+    <!-- 5. VISTA: CAJA, ALQUILERES & RENDICIÓN DE CUENTAS -->
+    <section id="view-cashflow" class="hidden space-y-6">
+      
+      <!-- Encabezado y Acciones Principales -->
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-2xl">⚖️</span>
+            <h2 class="text-xl font-black text-tucuman-navy">Caja, Alquileres & Rendición de Cuentas</h2>
+          </div>
+          <p class="text-xs text-slate-500 mt-0.5">Control de ingresos por eventos particulares, gastos operativos y planilla oficial para Tesorería</p>
+        </div>
+
+        <!-- Botones de Acción Rápida -->
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="openModal('modalNewRental')" id="btnNewRental" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition">
+            🏢 + Nuevo Alquiler de Evento
+          </button>
+          <button onclick="openModal('modalNewExpense')" id="btnNewExpense" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition">
+            🔴 + Registrar Gasto
+          </button>
+          <button onclick="openRendicionPlanilla()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition">
+            📋 Planilla de Rendición
+          </button>
+        </div>
+      </div>
+
+      <!-- Selector de Período de Caja -->
+      <div class="bg-slate-100/80 p-3.5 rounded-2xl border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-2 font-bold text-slate-700">
+          <span>📅 Período de Rendición:</span>
+          <button onclick="changeMonth(-1)" class="p-1.5 hover:bg-white rounded-lg border border-slate-300 transition">◀</button>
+          <span id="cashflowPeriodDisplay" class="bg-white px-3 py-1 rounded-lg border border-slate-300 font-extrabold text-tucuman-navy text-sm shadow-xs min-w-[140px] text-center">Septiembre 2026</span>
+          <button onclick="changeMonth(1)" class="p-1.5 hover:bg-white rounded-lg border border-slate-300 transition">▶</button>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-slate-500 font-medium">Filtrar vista:</span>
+          <select id="cashflowFilterScope" onchange="renderCashflowView()" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs font-semibold text-slate-700">
+            <option value="month">Solo este mes seleccionado</option>
+            <option value="year">Todo el año en curso</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- TARJETAS DE BALANCE FINANCIERO (KPIs) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+        
+        <!-- Cuotas de Socios -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-xs font-bold text-slate-500 mb-1">
+            <span>Cuotas de Socios</span>
+            <span class="text-base">👥</span>
+          </div>
+          <p class="text-lg font-black text-sky-700 font-mono" id="cashflowKpiMembers">$ 0</p>
+          <span class="text-[11px] text-slate-400 font-medium mt-1" id="cashflowKpiMembersCount">0 cuotas cobradas</span>
+        </div>
+
+        <!-- Alquileres de Eventos -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-xs font-bold text-slate-500 mb-1">
+            <span>Alquileres de Salón</span>
+            <span class="text-base">🏢</span>
+          </div>
+          <p class="text-lg font-black text-emerald-700 font-mono" id="cashflowKpiRentals">$ 0</p>
+          <span class="text-[11px] text-slate-400 font-medium mt-1" id="cashflowKpiRentalsCount">0 eventos cobrados</span>
+        </div>
+
+        <!-- TOTAL INGRESOS -->
+        <div class="bg-emerald-50/70 p-4 rounded-2xl shadow-sm border border-emerald-200 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-xs font-extrabold text-emerald-900 mb-1">
+            <span>TOTAL INGRESOS</span>
+            <span class="text-base">💰</span>
+          </div>
+          <p class="text-xl font-black text-emerald-800 font-mono" id="cashflowKpiTotalIncome">$ 0</p>
+          <span class="text-[11px] text-emerald-700 font-semibold mt-1">Cuotas + Alquileres</span>
+        </div>
+
+        <!-- TOTAL GASTOS (EGRESOS) -->
+        <div class="bg-rose-50/70 p-4 rounded-2xl shadow-sm border border-rose-200 flex flex-col justify-between">
+          <div class="flex items-center justify-between text-xs font-extrabold text-rose-900 mb-1">
+            <span>TOTAL GASTOS</span>
+            <span class="text-base">📉</span>
+          </div>
+          <p class="text-xl font-black text-rose-700 font-mono" id="cashflowKpiTotalExpenses">$ 0</p>
+          <span class="text-[11px] text-rose-700 font-semibold mt-1" id="cashflowKpiExpensesCount">0 comprobantes</span>
+        </div>
+
+        <!-- BALANCE NETO A RENDIR -->
+        <div class="bg-slate-900 text-white p-4 rounded-2xl shadow-sm border border-slate-800 flex flex-col justify-between" id="cashflowNetCard">
+          <div class="flex items-center justify-between text-xs font-bold text-slate-300 mb-1">
+            <span>SALDO A RENDIR</span>
+            <span class="text-base">⚖️</span>
+          </div>
+          <p class="text-xl font-black text-emerald-400 font-mono" id="cashflowKpiNet">$ 0</p>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full inline-block mt-1 w-max" id="cashflowKpiNetBadge">SUPERÁVIT</span>
+        </div>
+
+      </div>
+
+      <!-- Pestañas Internas de la Sección -->
+      <div class="flex border-b border-slate-200 gap-2">
+        <button onclick="switchCashflowSubTab('rentals')" id="subTabCashflowRentals" class="py-2.5 px-4 font-bold text-sm border-b-2 border-tucuman-navy text-tucuman-navy flex items-center gap-1.5 transition">
+          🏢 Alquileres de Salón & Eventos
+          <span id="badgeCashflowRentalsCount" class="bg-slate-100 text-slate-700 text-xs px-2 py-0.5 rounded-full font-semibold">0</span>
+        </button>
+        <button onclick="switchCashflowSubTab('expenses')" id="subTabCashflowExpenses" class="py-2.5 px-4 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition">
+          🧾 Gastos y Egresos Operativos
+          <span id="badgeCashflowExpensesCount" class="bg-slate-100 text-slate-700 text-xs px-2 py-0.5 rounded-full font-semibold">0</span>
+        </button>
+        <button onclick="switchCashflowSubTab('rendicion')" id="subTabCashflowRendicion" class="py-2.5 px-4 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition">
+          📋 Resumen de Rendición
+        </button>
+      </div>
+
+      <!-- SUB-VISTA 1: ALQUILERES DE INSTALACIONES Y EVENTOS -->
+      <div id="cashflowSubViewRentals" class="space-y-4">
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="relative flex-1 max-w-md">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">🔍</span>
+            <input type="text" id="searchRentalsInput" oninput="renderRentalsTable()" placeholder="Buscar por cliente, DNI, salón o evento..." class="w-full pl-9 pr-3 py-2 border rounded-xl text-xs focus:ring-2 focus:ring-tucuman-sky">
+          </div>
+          <div class="flex items-center gap-2">
+            <select id="filterRentalStatus" onchange="renderRentalsTable()" class="border rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 bg-white">
+              <option value="all">Todos los estados</option>
+              <option value="seña_abonada">Con Seña Abonada (Saldo Pendiente)</option>
+              <option value="pagado_total">Pagado Total</option>
+              <option value="pendiente">Pendiente de Pago</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="bg-slate-100 text-slate-700 uppercase font-bold text-[11px]">
+                <tr>
+                  <th class="py-3 px-3.5">Fecha & Horario</th>
+                  <th class="py-3 px-3.5">Espacio / Salón</th>
+                  <th class="py-3 px-3.5">Evento & Contratante</th>
+                  <th class="py-3 px-3.5">Total Acordado</th>
+                  <th class="py-3 px-3.5">Cobrado (Caja)</th>
+                  <th class="py-3 px-3.5">Saldo Restante</th>
+                  <th class="py-3 px-3.5">Estado</th>
+                  <th class="py-3 px-3.5">Comprobante</th>
+                  <th class="py-3 px-3.5 text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="rentalsTableBody" class="divide-y divide-slate-100">
+                <!-- Render dinámico de alquileres -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUB-VISTA 2: GASTOS Y EGRESOS DEL CLUB -->
+      <div id="cashflowSubViewExpenses" class="space-y-4 hidden">
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="relative flex-1 max-w-md">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">🔍</span>
+            <input type="text" id="searchExpensesInput" oninput="renderExpensesTable()" placeholder="Buscar por concepto, proveedor o comprobante..." class="w-full pl-9 pr-3 py-2 border rounded-xl text-xs focus:ring-2 focus:ring-tucuman-sky">
+          </div>
+          <div class="flex items-center gap-2">
+            <select id="filterExpenseCategory" onchange="renderExpensesTable()" class="border rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 bg-white">
+              <option value="all">Todas las categorías</option>
+              <option value="Mantenimiento">Mantenimiento e Infraestructura</option>
+              <option value="Limpieza">Limpieza e Higiene</option>
+              <option value="Elementos Deportivos">Elementos Deportivos / Básquet</option>
+              <option value="Arbitraje">Arbitraje y Planilleros</option>
+              <option value="Servicios">Servicios e Impuestos (Luz, Agua, etc.)</option>
+              <option value="Insumos">Insumos de Secretaría</option>
+              <option value="Varios">Varios / Otros</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="bg-slate-100 text-slate-700 uppercase font-bold text-[11px]">
+                <tr>
+                  <th class="py-3 px-3.5">Fecha</th>
+                  <th class="py-3 px-3.5">Rubro / Categoría</th>
+                  <th class="py-3 px-3.5">Concepto / Detalle</th>
+                  <th class="py-3 px-3.5">Proveedor / Cobró</th>
+                  <th class="py-3 px-3.5">Factura / Ticket</th>
+                  <th class="py-3 px-3.5">Medio</th>
+                  <th class="py-3 px-3.5">Monto Pagado</th>
+                  <th class="py-3 px-3.5">Registrado Por</th>
+                  <th class="py-3 px-3.5 text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="expensesTableBody" class="divide-y divide-slate-100">
+                <!-- Render dinámico de gastos -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUB-VISTA 3: RESUMEN DE RENDICIÓN EN PANTALLA -->
+      <div id="cashflowSubViewRendicion" class="space-y-4 hidden">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-3">
+            <div>
+              <h3 class="text-lg font-black text-tucuman-navy">Balance Consolidado para Rendición</h3>
+              <p class="text-xs text-slate-500">Resumen listo para rendir cuentas a Tesorería y Comisión Directiva</p>
+            </div>
+            <button onclick="openRendicionPlanilla()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm transition">
+              🖨️ Ver e Imprimir Planilla Oficial
+            </button>
+          </div>
+
+          <div id="rendicionScreenSummary" class="space-y-4 text-xs text-slate-700">
+            <!-- Resumen dinámico -->
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- 6. VISTA: CONFIGURACIÓN CLUB & GUÍA SUPABASE/VERCEL -->
     <section id="view-config" class="hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
@@ -530,6 +800,21 @@
             </div>
             <p class="text-indigo-800 leading-relaxed">
               Si es la primera vez que usas este proyecto en Supabase, debes crear las tablas (socios, cuotas y pagos). Solo pulsa <strong>"Copiar Script SQL"</strong>, entra en <a href="https://supabase.com/dashboard/project/ipjckjcqwxpkqmpwgugv/sql/new" target="_blank" class="underline font-bold text-indigo-950">SQL Editor de tu proyecto en Supabase</a>, pega el texto y haz clic en <strong>RUN</strong>.
+            </p>
+          </div>
+
+          <!-- Mantenimiento y Limpieza de Actividades Duplicadas -->
+          <div class="p-4 bg-amber-50 border border-amber-200 rounded-2xl space-y-2.5 text-xs text-amber-900">
+            <div class="flex items-center justify-between">
+              <span class="font-bold flex items-center gap-1.5 text-sm text-amber-950">
+                🧹 Depuración de Base de Datos
+              </span>
+              <button onclick="cleanDuplicateActivitiesInSupabase()" id="btnCleanDups" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg shadow-sm transition">
+                🧹 Unificar Actividades Duplicadas
+              </button>
+            </div>
+            <p class="text-amber-800 leading-relaxed">
+              Si quedaron actividades con el mismo nombre en Supabase por cambios de precios anteriores, este botón busca las repeticiones, reasigna de forma segura todos los pagos e inscripciones a la actividad más reciente y elimina las filas duplicadas.
             </p>
           </div>
         </div>
@@ -1142,6 +1427,550 @@
     </div>
   </div>
 
+  <!-- MODAL: NUEVO ALQUILER DE SALÓN / INSTALACIONES -->
+  <div id="modalNewRental" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center">
+        <div>
+          <h3 class="font-extrabold text-lg text-tucuman-navy">🏢 Nuevo Alquiler de Instalaciones / Evento</h3>
+          <p class="text-xs text-slate-500">Registra el evento particular y el cobro de seña para caja</p>
+        </div>
+        <button onclick="closeModal('modalNewRental')" class="text-slate-400 hover:text-slate-600 font-bold text-xl">&times;</button>
+      </div>
+      <form onsubmit="handleCreateRental(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Nombre / Motivo del Evento</label>
+          <input type="text" id="rentalEventTitle" required placeholder="Ej: Cumpleaños Infantil, Torneo Relámpago, Bautismo" class="w-full px-3 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-tucuman-sky">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Espacio o Instalación Alquilada</label>
+          <select id="rentalFacility" required class="w-full px-3 py-2 border rounded-xl text-sm bg-white font-semibold text-slate-700">
+            <option value="Salón Principal">Salón Principal (1er Piso con mesas y sillas)</option>
+            <option value="Cancha de Básquet">Cancha de Básquet (Parqué principal)</option>
+            <option value="Quincho / Asador">Quincho / Asador y Patio</option>
+            <option value="Instalaciones Completas">Instalaciones Completas del Club</option>
+            <option value="Otro Espacio">Otro Espacio</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Responsable / Contratante</label>
+            <input type="text" id="rentalClientName" required placeholder="Nombre y Apellido" class="w-full px-3 py-2 border rounded-xl text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">DNI del Responsable</label>
+            <input type="text" id="rentalClientDni" placeholder="Ej: 34123456" class="w-full px-3 py-2 border rounded-xl text-sm">
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Celular / WhatsApp</label>
+            <input type="text" id="rentalClientPhone" placeholder="+54 381 1234567" class="w-full px-3 py-2 border rounded-xl text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Fecha del Evento</label>
+            <input type="date" id="rentalDate" required class="w-full px-3 py-2 border rounded-xl text-sm">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Horario Reservado</label>
+          <input type="text" id="rentalTime" placeholder="Ej: 15:00 a 20:00 hs (5 horas)" class="w-full px-3 py-2 border rounded-xl text-sm">
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+          <div>
+            <label class="block text-[11px] font-bold text-emerald-900 mb-1">Monto Total Acordado</label>
+            <input type="number" id="rentalTotalPrice" required min="0" step="500" placeholder="$ 80.000" oninput="calculateRentalBalancePending('new')" class="w-full px-2.5 py-1.5 bg-white border border-emerald-300 rounded-lg text-sm font-bold text-emerald-900">
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-emerald-900 mb-1">Seña / Cobro Hoy</label>
+            <input type="number" id="rentalDepositPaid" required min="0" step="500" placeholder="$ 40.000" oninput="calculateRentalBalancePending('new')" class="w-full px-2.5 py-1.5 bg-white border border-emerald-300 rounded-lg text-sm font-bold text-emerald-900">
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-emerald-900 mb-1">Resta Cobrar (Saldo)</label>
+            <input type="text" id="rentalBalancePendingDisplay" readonly value="$ 0" class="w-full px-2.5 py-1.5 bg-emerald-100/70 border border-emerald-300 rounded-lg text-sm font-black text-rose-700">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Medio de Cobro</label>
+            <select id="rentalPaymentMethod" class="w-full px-3 py-2 border rounded-xl text-sm bg-white font-semibold">
+              <option value="Efectivo">Efectivo en Caja</option>
+              <option value="Transferencia">Transferencia Bancaria / CBU</option>
+              <option value="Débito">Tarjeta de Débito</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Estado de Pago</label>
+            <select id="rentalStatus" class="w-full px-3 py-2 border rounded-xl text-sm bg-white font-semibold">
+              <option value="seña_abonada">Seña Abonada (Saldo Pendiente)</option>
+              <option value="pagado_total">Pagado Total</option>
+              <option value="pendiente">Pendiente sin Seña</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Observaciones / Condiciones</label>
+          <textarea id="rentalNotes" rows="2" placeholder="Ej: Se compromete a devolver el salón limpio. Incluye uso de heladera y baños." class="w-full px-3 py-2 border rounded-xl text-sm"></textarea>
+        </div>
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeModal('modalNewRental')" class="flex-1 border py-2.5 rounded-xl text-sm font-semibold text-slate-600">Cancelar</button>
+          <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-sm shadow-sm transition">Guardar y Cobrar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: EDITAR ALQUILER DE SALÓN -->
+  <div id="modalEditRental" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center">
+        <div>
+          <h3 class="font-extrabold text-lg text-tucuman-navy">✏️ Modificar Alquiler / Cobro de Saldo</h3>
+          <p class="text-xs text-slate-500">Actualiza datos o asienta el cobro del saldo restante</p>
+        </div>
+        <button onclick="closeModal('modalEditRental')" class="text-slate-400 hover:text-slate-600 font-bold text-xl">&times;</button>
+      </div>
+      <form onsubmit="handleUpdateRental(event)" class="space-y-3">
+        <input type="hidden" id="editRentalId">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Nombre / Motivo del Evento</label>
+          <input type="text" id="editRentalEventTitle" required class="w-full px-3 py-2 border rounded-xl text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Espacio Alquilado</label>
+          <select id="editRentalFacility" class="w-full px-3 py-2 border rounded-xl text-sm bg-white font-semibold">
+            <option value="Salón Principal">Salón Principal (1er Piso con mesas y sillas)</option>
+            <option value="Cancha de Básquet">Cancha de Básquet (Parqué principal)</option>
+            <option value="Quincho / Asador">Quincho / Asador y Patio</option>
+            <option value="Instalaciones Completas">Instalaciones Completas del Club</option>
+            <option value="Otro Espacio">Otro Espacio</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Responsable / Contratante</label>
+            <input type="text" id="editRentalClientName" required class="w-full px-3 py-2 border rounded-xl text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">DNI</label>
+            <input type="text" id="editRentalClientDni" class="w-full px-3 py-2 border rounded-xl text-sm">
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Celular / WhatsApp</label>
+            <input type="text" id="editRentalClientPhone" class="w-full px-3 py-2 border rounded-xl text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Fecha del Evento</label>
+            <input type="date" id="editRentalDate" required class="w-full px-3 py-2 border rounded-xl text-sm">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Horario Reservado</label>
+          <input type="text" id="editRentalTime" class="w-full px-3 py-2 border rounded-xl text-sm">
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+          <div>
+            <label class="block text-[11px] font-bold text-emerald-900 mb-1">Total Acordado</label>
+            <input type="number" id="editRentalTotalPrice" required min="0" step="500" oninput="calculateRentalBalancePending('edit')" class="w-full px-2.5 py-1.5 bg-white border border-emerald-300 rounded-lg text-sm font-bold">
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-emerald-900 mb-1">Total Cobrado (Caja)</label>
+            <input type="number" id="editRentalDepositPaid" required min="0" step="500" oninput="calculateRentalBalancePending('edit')" class="w-full px-2.5 py-1.5 bg-white border border-emerald-300 rounded-lg text-sm font-bold">
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-emerald-900 mb-1">Saldo Pendiente</label>
+            <input type="text" id="editRentalBalancePendingDisplay" readonly class="w-full px-2.5 py-1.5 bg-emerald-100/70 border border-emerald-300 rounded-lg text-sm font-black text-rose-700">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Medio de Pago</label>
+            <select id="editRentalPaymentMethod" class="w-full px-3 py-2 border rounded-xl text-sm bg-white font-semibold">
+              <option value="Efectivo">Efectivo en Caja</option>
+              <option value="Transferencia">Transferencia Bancaria</option>
+              <option value="Débito">Tarjeta de Débito</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Estado</label>
+            <select id="editRentalStatus" class="w-full px-3 py-2 border rounded-xl text-sm bg-white font-semibold">
+              <option value="seña_abonada">Seña Abonada (Saldo Pendiente)</option>
+              <option value="pagado_total">Pagado Total</option>
+              <option value="pendiente">Pendiente sin Seña</option>
+              <option value="cancelado">Cancelado</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Observaciones</label>
+          <textarea id="editRentalNotes" rows="2" class="w-full px-3 py-2 border rounded-xl text-sm"></textarea>
+        </div>
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeModal('modalEditRental')" class="flex-1 border py-2.5 rounded-xl text-sm font-semibold text-slate-600">Cancelar</button>
+          <button type="submit" class="flex-1 bg-tucuman-navy hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl text-sm shadow-sm transition">Actualizar Registro</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: REGISTRAR GASTO / EGRESO DE CAJA -->
+  <div id="modalNewExpense" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center">
+        <div>
+          <h3 class="font-extrabold text-lg text-tucuman-navy">🔴 Registrar Gasto / Egreso de Caja</h3>
+          <p class="text-xs text-slate-500">Asienta un pago realizado por la secretaría para rendir cuentas</p>
+        </div>
+        <button onclick="closeModal('modalNewExpense')" class="text-slate-400 hover:text-slate-600 font-bold text-xl">&times;</button>
+      </div>
+      <form onsubmit="handleCreateExpense(event)" class="space-y-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Fecha del Gasto</label>
+            <input type="date" id="expenseDate" required class="w-full px-3 py-2 border rounded-xl text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Rubro / Categoría</label>
+            <select id="expenseCategory" required class="w-full px-3 py-2 border rounded-xl text-sm bg-white font-semibold text-slate-700">
+              <option value="Mantenimiento">🛠️ Mantenimiento e Infraestructura</option>
+              <option value="Limpieza">🧹 Limpieza e Higiene</option>
+              <option value="Elementos Deportivos">🏀 Elementos Deportivos / Básquet</option>
+              <option value="Arbitraje">⏱️ Arbitraje y Planilleros</option>
+              <option value="Servicios">💡 Servicios e Impuestos (Luz, Agua, etc.)</option>
+              <option value="Insumos">📦 Insumos de Secretaría / Oficina</option>
+              <option value="Varios">📌 Varios / Otros Egresos</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Concepto / Detalle del Gasto</label>
+          <textarea id="expenseDesc" required rows="2" placeholder="Ej: Compra de artículos de limpieza, pintura para cancha, reflectores..." class="w-full px-3 py-2 border rounded-xl text-sm"></textarea>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-rose-800 mb-1">Monto Pagado ($)</label>
+            <input type="number" id="expenseAmount" required min="1" step="50" placeholder="Ej: 15000" class="w-full px-3 py-2 border border-rose-300 rounded-xl text-sm font-bold text-rose-900 bg-rose-50/40">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Medio de Pago</label>
+            <select id="expensePaymentMethod" class="w-full px-3 py-2 border rounded-xl text-sm bg-white font-semibold">
+              <option value="Efectivo de Caja">Efectivo de Caja</option>
+              <option value="Transferencia">Transferencia Bancaria</option>
+              <option value="Tarjeta / Débito">Tarjeta / Débito</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Proveedor / A Quién se le Pagó</label>
+            <input type="text" id="expenseSupplier" placeholder="Ej: Química Suipacha, Electricidad Norte..." class="w-full px-3 py-2 border rounded-xl text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Nº de Factura, Ticket o Recibo</label>
+            <input type="text" id="expenseInvoice" placeholder="Ej: Factura B-0012, Ticket 994" class="w-full px-3 py-2 border rounded-xl text-sm">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Observaciones Adicionales</label>
+          <input type="text" id="expenseNotes" placeholder="Detalle opcional..." class="w-full px-3 py-2 border rounded-xl text-sm">
+        </div>
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeModal('modalNewExpense')" class="flex-1 border py-2.5 rounded-xl text-sm font-semibold text-slate-600">Cancelar</button>
+          <button type="submit" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl text-sm shadow-sm transition">Registrar Egreso</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: EDITAR GASTO -->
+  <div id="modalEditExpense" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-xl max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center">
+        <div>
+          <h3 class="font-extrabold text-lg text-tucuman-navy">✏️ Modificar Gasto / Egreso</h3>
+          <p class="text-xs text-slate-500">Edita la descripción o monto del gasto registrado</p>
+        </div>
+        <button onclick="closeModal('modalEditExpense')" class="text-slate-400 hover:text-slate-600 font-bold text-xl">&times;</button>
+      </div>
+      <form onsubmit="handleUpdateExpense(event)" class="space-y-3">
+        <input type="hidden" id="editExpenseId">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Fecha</label>
+            <input type="date" id="editExpenseDate" required class="w-full px-3 py-2 border rounded-xl text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Rubro</label>
+            <select id="editExpenseCategory" class="w-full px-3 py-2 border rounded-xl text-sm bg-white font-semibold">
+              <option value="Mantenimiento">🛠️ Mantenimiento e Infraestructura</option>
+              <option value="Limpieza">🧹 Limpieza e Higiene</option>
+              <option value="Elementos Deportivos">🏀 Elementos Deportivos / Básquet</option>
+              <option value="Arbitraje">⏱️ Arbitraje y Planilleros</option>
+              <option value="Servicios">💡 Servicios e Impuestos</option>
+              <option value="Insumos">📦 Insumos de Secretaría</option>
+              <option value="Varios">📌 Varios / Otros</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Detalle del Gasto</label>
+          <textarea id="editExpenseDesc" required rows="2" class="w-full px-3 py-2 border rounded-xl text-sm"></textarea>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-rose-800 mb-1">Monto ($)</label>
+            <input type="number" id="editExpenseAmount" required min="1" step="50" class="w-full px-3 py-2 border border-rose-300 rounded-xl text-sm font-bold text-rose-900 bg-rose-50/40">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Medio</label>
+            <select id="editExpensePaymentMethod" class="w-full px-3 py-2 border rounded-xl text-sm bg-white font-semibold">
+              <option value="Efectivo de Caja">Efectivo de Caja</option>
+              <option value="Transferencia">Transferencia Bancaria</option>
+              <option value="Tarjeta / Débito">Tarjeta / Débito</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Proveedor</label>
+            <input type="text" id="editExpenseSupplier" class="w-full px-3 py-2 border rounded-xl text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Factura / Ticket</label>
+            <input type="text" id="editExpenseInvoice" class="w-full px-3 py-2 border rounded-xl text-sm">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Observaciones</label>
+          <input type="text" id="editExpenseNotes" class="w-full px-3 py-2 border rounded-xl text-sm">
+        </div>
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeModal('modalEditExpense')" class="flex-1 border py-2.5 rounded-xl text-sm font-semibold text-slate-600">Cancelar</button>
+          <button type="submit" class="flex-1 bg-tucuman-navy hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl text-sm shadow-sm transition">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: RECIBO OFICIAL DE ALQUILER (IMPRIMIBLE) -->
+  <div id="modalRentalReceipt" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl border border-slate-200">
+      
+      <div id="printableRentalReceipt" class="p-6 bg-slate-50 border-2 border-slate-200 rounded-xl space-y-4">
+        <!-- Encabezado -->
+        <div class="text-center border-b pb-3">
+          <img src="club_logo.jpg?v=20261001" alt="Logo Club Tucumán BB" class="w-14 h-14 rounded-full mx-auto object-cover mb-2 border-2 border-slate-200 shadow-sm bg-white" onerror="if(!this.dataset.triedPng){this.dataset.triedPng=1;this.src='club_logo.png?v=20261001';}else{this.style.display='none';}">
+          <h2 class="text-xl font-black text-tucuman-navy tracking-tight">CLUB TUCUMÁN BB</h2>
+          <p class="text-xs font-semibold text-slate-600">Suipacha 1160 - San Miguel de Tucumán</p>
+          <p class="text-[11px] text-sky-700">tucumanbbcuotas@gmail.com • Tel: +54 381 423-1234</p>
+          <div class="mt-2 inline-block px-3 py-1 bg-emerald-100 text-emerald-900 text-xs font-black rounded-lg border border-emerald-300 uppercase tracking-wider">
+            RECIBO DE ALQUILER DE INSTALACIONES
+          </div>
+        </div>
+
+        <!-- Datos del Recibo -->
+        <div class="space-y-2 text-xs">
+          <div class="flex justify-between border-b pb-1.5 font-bold">
+            <span class="text-slate-500">N° de Comprobante:</span>
+            <span class="text-tucuman-navy font-mono text-sm" id="recRentalNumber">ALQ-0001-00000001</span>
+          </div>
+          <div class="flex justify-between border-b pb-1.5">
+            <span class="text-slate-500">Fecha de Emisión:</span>
+            <span class="font-semibold text-slate-800" id="recRentalIssueDate">01/10/2026</span>
+          </div>
+          <div class="flex justify-between border-b pb-1.5">
+            <span class="text-slate-500">Contratante:</span>
+            <span class="font-bold text-slate-800 text-right" id="recRentalClient">Juan Pérez (DNI: 34123456)</span>
+          </div>
+          <div class="flex justify-between border-b pb-1.5">
+            <span class="text-slate-500">Espacio Reservado:</span>
+            <span class="font-semibold text-sky-800" id="recRentalFacility">Salón Principal</span>
+          </div>
+          <div class="flex justify-between border-b pb-1.5">
+            <span class="text-slate-500">Evento / Motivo:</span>
+            <span class="font-semibold text-slate-800" id="recRentalEvent">Cumpleaños Infantil</span>
+          </div>
+          <div class="flex justify-between border-b pb-1.5">
+            <span class="text-slate-500">Fecha & Horario Evento:</span>
+            <span class="font-bold text-slate-800" id="recRentalDateTime">10/10/2026 - 15:00 a 20:00 hs</span>
+          </div>
+          <div class="flex justify-between border-b pb-1.5">
+            <span class="text-slate-500">Total Acordado:</span>
+            <span class="font-bold text-slate-700" id="recRentalTotalPrice">$ 80.000</span>
+          </div>
+          <div class="flex justify-between border-b pb-1.5 bg-emerald-50 p-2 rounded-lg text-emerald-950 font-bold">
+            <span>MONTO COBRADO (SEÑA / TOTAL):</span>
+            <span class="text-base text-emerald-700 font-mono" id="recRentalAmountPaid">$ 40.000</span>
+          </div>
+          <div class="flex justify-between border-b pb-1.5">
+            <span class="text-slate-500">Saldo Restante a Abonar:</span>
+            <span class="font-bold text-rose-700 font-mono" id="recRentalBalance">$ 40.000</span>
+          </div>
+          <div class="flex justify-between border-b pb-1.5">
+            <span class="text-slate-500">Medio de Pago:</span>
+            <span class="font-semibold text-slate-800" id="recRentalMethod">Efectivo en Caja</span>
+          </div>
+          <div id="recRentalNotesRow" class="text-[11px] text-slate-500 italic bg-white p-2 rounded border">
+            <span class="font-semibold text-slate-700">Observaciones:</span> <span id="recRentalNotes">Uso de mesas y sillas.</span>
+          </div>
+        </div>
+
+        <!-- Firmas -->
+        <div class="pt-6 grid grid-cols-2 gap-4 text-center text-[10px] text-slate-500">
+          <div class="border-t border-slate-300 pt-1">
+            <p class="font-bold text-slate-700">Firma Secretaría</p>
+            <p>Club Tucumán BB</p>
+          </div>
+          <div class="border-t border-slate-300 pt-1">
+            <p class="font-bold text-slate-700">Firma Contratante</p>
+            <p>Conformidad y Reserva</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Acciones del Modal -->
+      <div class="flex gap-2">
+        <button onclick="closeModal('modalRentalReceipt')" class="flex-1 border py-2.5 rounded-xl text-xs font-semibold text-slate-600">Cerrar</button>
+        <button onclick="window.print()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-sm transition flex items-center justify-center gap-1.5">
+          🖨️ Imprimir Comprobante
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PLANILLA OFICIAL DE RENDICIÓN DE CAJA (IMPRIMIBLE) -->
+  <div id="modalRendicionPlanilla" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-3xl w-full p-6 space-y-4 shadow-xl border border-slate-200 max-h-[95vh] overflow-y-auto">
+      
+      <!-- Contenedor Imprimible de la Planilla -->
+      <div id="printableRendicion" class="p-6 sm:p-8 bg-white border-2 border-slate-300 rounded-xl space-y-5 text-slate-800">
+        
+        <!-- Encabezado Institucional -->
+        <div class="flex items-center justify-between border-b-2 border-slate-800 pb-4">
+          <div class="flex items-center gap-3">
+            <img src="club_logo.jpg?v=20261001" alt="Logo Club Tucumán BB" class="w-16 h-16 rounded-full object-cover border-2 border-slate-300 shadow-xs" onerror="if(!this.dataset.triedPng){this.dataset.triedPng=1;this.src='club_logo.png?v=20261001';}else{this.style.display='none';}">
+            <div>
+              <h1 class="text-xl font-black text-slate-900 tracking-tight">CLUB TUCUMÁN BB</h1>
+              <p class="text-xs font-semibold text-slate-600">Suipacha 1160 - San Miguel de Tucumán</p>
+              <p class="text-[11px] text-sky-800">tucumanbbcuotas@gmail.com • Tel: +54 381 423-1234</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="px-2.5 py-1 bg-slate-900 text-white font-black text-xs rounded uppercase tracking-wider">
+              PLANILLA DE CAJA
+            </span>
+            <p class="text-xs font-bold text-slate-800 mt-1" id="rendicionPrintPeriod">Período: Septiembre 2026</p>
+            <p class="text-[11px] text-slate-500" id="rendicionPrintDate">Fecha de emisión: 01/10/2026</p>
+          </div>
+        </div>
+
+        <!-- CUADRO RESUMEN EJECUTIVO DE BALANCE -->
+        <div class="grid grid-cols-3 gap-3 text-center border-2 border-slate-200 rounded-xl p-3 bg-slate-50">
+          <div>
+            <span class="text-[11px] font-bold text-emerald-800 uppercase block">1. Total Ingresos</span>
+            <span class="text-lg font-black text-emerald-700 font-mono" id="rendicionTotalIngresosPrint">$ 0</span>
+            <span class="text-[10px] text-slate-500 block" id="rendicionSubIngresosText">Cuotas + Alquileres</span>
+          </div>
+          <div>
+            <span class="text-[11px] font-bold text-rose-800 uppercase block">2. Total Gastos</span>
+            <span class="text-lg font-black text-rose-700 font-mono" id="rendicionTotalGastosPrint">$ 0</span>
+            <span class="text-[10px] text-slate-500 block" id="rendicionSubGastosText">Egresos operativos</span>
+          </div>
+          <div class="border-l-2 border-slate-300 pl-2">
+            <span class="text-[11px] font-bold text-slate-900 uppercase block">3. Saldo a Rendir</span>
+            <span class="text-lg font-black text-indigo-900 font-mono" id="rendicionSaldoNetoPrint">$ 0</span>
+            <span class="text-[10px] font-bold text-emerald-700 block" id="rendicionBadgePrint">SUPERÁVIT EN EFECTIVO</span>
+          </div>
+        </div>
+
+        <!-- SECCIÓN A: DETALLE DE INGRESOS POR ALQUILERES Y EVENTOS -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between border-b pb-1">
+            <h4 class="font-extrabold text-xs text-slate-800 uppercase">🏢 A. Ingresos por Alquiler de Instalaciones / Eventos</h4>
+            <span class="font-mono text-xs font-bold text-emerald-700" id="rendicionRentalsSubtotalPrint">$ 0</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-[11px] border border-slate-200">
+              <thead class="bg-slate-100 text-slate-700 font-bold">
+                <tr>
+                  <th class="py-1.5 px-2 border-b">Fecha Evento</th>
+                  <th class="py-1.5 px-2 border-b">Espacio</th>
+                  <th class="py-1.5 px-2 border-b">Responsable</th>
+                  <th class="py-1.5 px-2 border-b">Concepto</th>
+                  <th class="py-1.5 px-2 border-b">Cobrado Hoy</th>
+                  <th class="py-1.5 px-2 border-b">Saldo Restante</th>
+                </tr>
+              </thead>
+              <tbody id="rendicionRentalsTablePrint" class="divide-y divide-slate-100">
+                <!-- Filas dinámicas -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- SECCIÓN B: DETALLE DE INGRESOS POR CUOTAS DE SOCIOS -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between border-b pb-1">
+            <h4 class="font-extrabold text-xs text-slate-800 uppercase">👥 B. Resumen de Ingresos por Cuotas Mensuales</h4>
+            <span class="font-mono text-xs font-bold text-sky-800" id="rendicionCuotasSubtotalPrint">$ 0</span>
+          </div>
+          <p class="text-[11px] text-slate-600" id="rendicionCuotasSummaryText">
+            Se registraron X cobros de cuotas de socios en este período institucional.
+          </p>
+        </div>
+
+        <!-- SECCIÓN C: DETALLE DISCRIMINADO DE GASTOS Y EGRESOS -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between border-b pb-1">
+            <h4 class="font-extrabold text-xs text-slate-800 uppercase">📉 C. Detalle de Gastos Operativos y Comprobantes</h4>
+            <span class="font-mono text-xs font-bold text-rose-700" id="rendicionExpensesSubtotalPrint">$ 0</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-[11px] border border-slate-200">
+              <thead class="bg-slate-100 text-slate-700 font-bold">
+                <tr>
+                  <th class="py-1.5 px-2 border-b">Fecha</th>
+                  <th class="py-1.5 px-2 border-b">Rubro</th>
+                  <th class="py-1.5 px-2 border-b">Concepto / Detalle</th>
+                  <th class="py-1.5 px-2 border-b">Proveedor</th>
+                  <th class="py-1.5 px-2 border-b">Comprobante</th>
+                  <th class="py-1.5 px-2 border-b text-right">Monto Pagado</th>
+                </tr>
+              </thead>
+              <tbody id="rendicionExpensesTablePrint" class="divide-y divide-slate-100">
+                <!-- Filas dinámicas -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- FIRMAS DE CONFORMIDAD -->
+        <div class="pt-8 grid grid-cols-2 gap-8 text-center text-xs">
+          <div class="border-t-2 border-slate-400 pt-2">
+            <p class="font-bold text-slate-900 text-sm">Firma y Aclaración Secretaría</p>
+            <p class="text-slate-500 text-[11px]">Rendición de Cobranzas y Comprobantes</p>
+          </div>
+          <div class="border-t-2 border-slate-400 pt-2">
+            <p class="font-bold text-slate-900 text-sm">Firma y Aclaración Tesorería / Presidencia</p>
+            <p class="text-slate-500 text-[11px]">Recepción de Fondos y Aprobación de Balance</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Acciones del Modal -->
+      <div class="flex gap-2">
+        <button onclick="closeModal('modalRendicionPlanilla')" class="flex-1 border py-2.5 rounded-xl text-xs font-semibold text-slate-600">Cerrar</button>
+        <button onclick="window.print()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl text-xs shadow-sm transition flex items-center justify-center gap-1.5">
+          🖨️ Imprimir Planilla Oficial
+        </button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- SCRIPT DE LÓGICA Y DATOS -->
   <script>
     // ESTADO GLOBAL
@@ -1207,6 +2036,87 @@
     let talonarios = [
       { id: 1, name: 'Talonario Oficial Tesorería', prefix: 'REC', pos_number: 1, current_number: 5, start_number: 1, is_active: true }
     ];
+
+    // ALQUILERES DE INSTALACIONES Y GASTOS OPERATIVOS (CAJA & RENDICIÓN)
+    let rentals = [
+      {
+        id: 1,
+        event_title: 'Cumpleaños Infantil (Pedro)',
+        facility_name: 'Salón Principal',
+        client_name: 'Marcos Toledo',
+        client_dni: '32111444',
+        client_phone: '+54 381 455-8899',
+        rental_date: '2026-09-15',
+        rental_time: '15:00 a 19:30 hs',
+        total_price: 80000,
+        deposit_paid: 80000,
+        balance_pending: 0,
+        payment_method: 'Efectivo',
+        status: 'pagado_total',
+        receipt_number: 'ALQ-0001-00000001',
+        registered_by: 'Secretaría',
+        notes: 'Incluye uso de mesas, sillas y heladera.'
+      },
+      {
+        id: 2,
+        event_title: 'Torneo Relámpago de Básquetbol',
+        facility_name: 'Cancha de Básquet',
+        client_name: 'Esteban Morales',
+        client_dni: '29888777',
+        client_phone: '+54 381 677-2211',
+        rental_date: '2026-09-22',
+        rental_time: '09:00 a 14:00 hs',
+        total_price: 120000,
+        deposit_paid: 60000,
+        balance_pending: 60000,
+        payment_method: 'Transferencia',
+        status: 'seña_abonada',
+        receipt_number: 'ALQ-0001-00000002',
+        registered_by: 'Secretaría',
+        notes: 'Seña abonada. Resta abonar saldo antes de ingresar a la cancha.'
+      }
+    ];
+
+    let expenses = [
+      {
+        id: 1,
+        expense_date: '2026-09-04',
+        category: 'Limpieza',
+        description: 'Compra de artículos de desinfección y limpieza general para vestuarios y cancha',
+        amount: 21500,
+        payment_method: 'Efectivo de Caja',
+        supplier_name: 'Química Suipacha',
+        invoice_number: 'Ticket 4491',
+        registered_by: 'Secretaría',
+        notes: 'Lavandina, desengrasante y bolsas de consorcio'
+      },
+      {
+        id: 2,
+        expense_date: '2026-09-12',
+        category: 'Mantenimiento',
+        description: 'Reparación de cerradura y picaporte de vestuario local',
+        amount: 18000,
+        payment_method: 'Efectivo de Caja',
+        supplier_name: 'Cerrajería del Centro',
+        invoice_number: 'Recibo 108',
+        registered_by: 'Secretaría',
+        notes: 'Trabajo urgente realizado antes del partido'
+      },
+      {
+        id: 3,
+        expense_date: '2026-09-20',
+        category: 'Arbitraje',
+        description: 'Pago honorarios de árbitros y planillero jornada formativa U13 y U15',
+        amount: 45000,
+        payment_method: 'Efectivo de Caja',
+        supplier_name: 'Colegio de Árbitros Tucumán',
+        invoice_number: 'Comprobante 512',
+        registered_by: 'Secretaría',
+        notes: 'Dos partidos fecha oficial'
+      }
+    ];
+
+    let cashflowSubTab = 'rentals';
 
     // ROLES Y USUARIOS DEL SISTEMA
     let currentUser = {
@@ -1280,6 +2190,14 @@
       if (savedCurrentUser) {
         try { currentUser = JSON.parse(savedCurrentUser); } catch(e) {}
       }
+      const savedRentals = localStorage.getItem('tbb_rentals');
+      const savedExpenses = localStorage.getItem('tbb_expenses');
+      if (savedRentals) {
+        try { rentals = JSON.parse(savedRentals); } catch(e) {}
+      }
+      if (savedExpenses) {
+        try { expenses = JSON.parse(savedExpenses); } catch(e) {}
+      }
 
       document.getElementById('cfgClubName').value = clubSettings.clubName;
       document.getElementById('cfgClubEmail').value = clubSettings.officialGmail;
@@ -1298,6 +2216,8 @@
       localStorage.setItem('tbb_payments', JSON.stringify(payments));
       localStorage.setItem('tbb_settings', JSON.stringify(clubSettings));
       localStorage.setItem('tbb_talonarios', JSON.stringify(talonarios));
+      localStorage.setItem('tbb_rentals', JSON.stringify(rentals));
+      localStorage.setItem('tbb_expenses', JSON.stringify(expenses));
       localStorage.setItem('tbb_users', JSON.stringify(clubUsers));
       localStorage.setItem('tbb_current_user', JSON.stringify(currentUser));
     }
@@ -1320,6 +2240,7 @@
 
       const navActivities = document.getElementById('nav-activities');
       const navPayments = document.getElementById('nav-payments');
+      const navCashflow = document.getElementById('nav-cashflow');
       const navConfig = document.getElementById('nav-config');
       const btnTopConfig = document.getElementById('btnTopConfig');
 
@@ -1375,15 +2296,17 @@
       if (currentUser.role_code === 'entrenador') {
         if (navActivities) navActivities.classList.add('hidden');
         if (navPayments) navPayments.classList.add('hidden');
+        if (navCashflow) navCashflow.classList.add('hidden');
         if (navConfig) navConfig.classList.add('hidden');
         if (btnTopConfig) btnTopConfig.classList.add('hidden');
 
         // Si estaba en pestaña oculta, cambiar a socios
-        const curTab = ['activities', 'payments', 'config'].find(t => !document.getElementById(`view-${t}`)?.classList.contains('hidden'));
+        const curTab = ['activities', 'payments', 'cashflow', 'config'].find(t => !document.getElementById(`view-${t}`)?.classList.contains('hidden'));
         if (curTab) switchTab('members');
       } else if (currentUser.role_code === 'secretario') {
         if (navActivities) navActivities.classList.remove('hidden');
         if (navPayments) navPayments.classList.remove('hidden');
+        if (navCashflow) navCashflow.classList.remove('hidden');
         if (navConfig) navConfig.classList.add('hidden');
         if (btnTopConfig) btnTopConfig.classList.add('hidden');
 
@@ -1391,6 +2314,7 @@
       } else { // admin
         if (navActivities) navActivities.classList.remove('hidden');
         if (navPayments) navPayments.classList.remove('hidden');
+        if (navCashflow) navCashflow.classList.remove('hidden');
         if (navConfig) navConfig.classList.remove('hidden');
         if (btnTopConfig) btnTopConfig.classList.remove('hidden');
       }
@@ -1748,17 +2672,19 @@
 
     // NAVEGACIÓN ENTRE PESTAÑAS
     function switchTab(tabId) {
-      ['dashboard', 'members', 'activities', 'payments', 'config'].forEach(t => {
+      ['dashboard', 'members', 'activities', 'payments', 'cashflow', 'config'].forEach(t => {
         const view = document.getElementById(`view-${t}`);
         const btn = document.getElementById(`nav-${t}`);
-        if (t === tabId) {
-          view.classList.remove('hidden');
-          btn.classList.add('bg-tucuman-sky', 'text-white', 'shadow');
-          btn.classList.remove('text-slate-300', 'hover:bg-slate-800');
-        } else {
-          view.classList.add('hidden');
-          btn.classList.remove('bg-tucuman-sky', 'text-white', 'shadow');
-          btn.classList.add('text-slate-300', 'hover:bg-slate-800');
+        if (view && btn) {
+          if (t === tabId) {
+            view.classList.remove('hidden');
+            btn.classList.add('bg-tucuman-sky', 'text-white', 'shadow');
+            btn.classList.remove('text-slate-300', 'hover:bg-slate-800');
+          } else {
+            view.classList.add('hidden');
+            btn.classList.remove('bg-tucuman-sky', 'text-white', 'shadow');
+            btn.classList.add('text-slate-300', 'hover:bg-slate-800');
+          }
         }
       });
       if (tabId === 'activities') {
@@ -1769,6 +2695,8 @@
         renderDashboard();
       } else if (tabId === 'payments') {
         renderPaymentsLedger();
+      } else if (tabId === 'cashflow') {
+        renderCashflowView();
       }
       applyUserPermissions();
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1791,7 +2719,11 @@
     }
 
     function updatePeriodDisplay() {
-      document.getElementById('currentPeriodDisplay').innerText = `${monthNames[selectedMonth - 1]} ${selectedYear}`;
+      const curText = `${monthNames[selectedMonth - 1]} ${selectedYear}`;
+      const el1 = document.getElementById('currentPeriodDisplay');
+      if (el1) el1.innerText = curText;
+      const el2 = document.getElementById('cashflowPeriodDisplay');
+      if (el2) el2.innerText = curText;
     }
 
     // CÁLCULO DE DEUDAS Y ALERTAS
@@ -1833,6 +2765,7 @@
       renderMembersList();
       renderActivitiesGrid();
       renderPaymentsLedger();
+      renderCashflowView();
     }
 
     function formatMoney(amount) {
@@ -3070,6 +4003,788 @@
       document.body.removeChild(link);
     }
 
+    // ====================================================================
+    // MÓDULO DE CAJA, ALQUILERES & RENDICIÓN DE CUENTAS
+    // ====================================================================
+
+    function switchCashflowSubTab(subTab) {
+      cashflowSubTab = subTab;
+      
+      const vRentals = document.getElementById('cashflowSubViewRentals');
+      const vExpenses = document.getElementById('cashflowSubViewExpenses');
+      const vRendicion = document.getElementById('cashflowSubViewRendicion');
+
+      const btnRentals = document.getElementById('subTabCashflowRentals');
+      const btnExpenses = document.getElementById('subTabCashflowExpenses');
+      const btnRendicion = document.getElementById('subTabCashflowRendicion');
+
+      if (vRentals) vRentals.classList.toggle('hidden', subTab !== 'rentals');
+      if (vExpenses) vExpenses.classList.toggle('hidden', subTab !== 'expenses');
+      if (vRendicion) vRendicion.classList.toggle('hidden', subTab !== 'rendicion');
+
+      const activeClasses = ['border-tucuman-navy', 'text-tucuman-navy'];
+      const inactiveClasses = ['border-transparent', 'text-slate-500'];
+
+      if (btnRentals) {
+        if (subTab === 'rentals') {
+          btnRentals.classList.add(...activeClasses);
+          btnRentals.classList.remove(...inactiveClasses);
+        } else {
+          btnRentals.classList.remove(...activeClasses);
+          btnRentals.classList.add(...inactiveClasses);
+        }
+      }
+      if (btnExpenses) {
+        if (subTab === 'expenses') {
+          btnExpenses.classList.add(...activeClasses);
+          btnExpenses.classList.remove(...inactiveClasses);
+        } else {
+          btnExpenses.classList.remove(...activeClasses);
+          btnExpenses.classList.add(...inactiveClasses);
+        }
+      }
+      if (btnRendicion) {
+        if (subTab === 'rendicion') {
+          btnRendicion.classList.add(...activeClasses);
+          btnRendicion.classList.remove(...inactiveClasses);
+        } else {
+          btnRendicion.classList.remove(...activeClasses);
+          btnRendicion.classList.add(...inactiveClasses);
+        }
+      }
+
+      if (subTab === 'rentals') renderRentalsTable();
+      else if (subTab === 'expenses') renderExpensesTable();
+      else if (subTab === 'rendicion') renderRendicionSummary();
+    }
+
+    function calculateRentalBalancePending(mode) {
+      if (mode === 'new') {
+        const total = Number(document.getElementById('rentalTotalPrice').value) || 0;
+        const paid = Number(document.getElementById('rentalDepositPaid').value) || 0;
+        const bal = Math.max(0, total - paid);
+        const el = document.getElementById('rentalBalancePendingDisplay');
+        if (el) el.value = formatMoney(bal);
+        
+        const st = document.getElementById('rentalStatus');
+        if (st) {
+          if (paid >= total && total > 0) st.value = 'pagado_total';
+          else if (paid > 0) st.value = 'seña_abonada';
+          else st.value = 'pendiente';
+        }
+      } else {
+        const total = Number(document.getElementById('editRentalTotalPrice').value) || 0;
+        const paid = Number(document.getElementById('editRentalDepositPaid').value) || 0;
+        const bal = Math.max(0, total - paid);
+        const el = document.getElementById('editRentalBalancePendingDisplay');
+        if (el) el.value = formatMoney(bal);
+
+        const st = document.getElementById('editRentalStatus');
+        if (st) {
+          if (paid >= total && total > 0) st.value = 'pagado_total';
+          else if (paid > 0) st.value = 'seña_abonada';
+        }
+      }
+    }
+
+    function getCashflowFilteredData() {
+      const scope = document.getElementById('cashflowFilterScope')?.value || 'month';
+      
+      let periodPayments = [];
+      let periodRentals = [];
+      let periodExpenses = [];
+
+      if (scope === 'year') {
+        periodPayments = payments.filter(p => p.period_year === selectedYear);
+        periodRentals = rentals.filter(r => {
+          const y = (r.rental_date || '').slice(0, 4);
+          return Number(y) === selectedYear;
+        });
+        periodExpenses = expenses.filter(x => {
+          const y = (x.expense_date || '').slice(0, 4);
+          return Number(y) === selectedYear;
+        });
+      } else {
+        periodPayments = payments.filter(p => p.period_month === selectedMonth && p.period_year === selectedYear);
+        periodRentals = rentals.filter(r => {
+          if (!r.rental_date) return false;
+          const [y, m] = r.rental_date.split('-');
+          return Number(y) === selectedYear && Number(m) === selectedMonth;
+        });
+        periodExpenses = expenses.filter(x => {
+          if (!x.expense_date) return false;
+          const [y, m] = x.expense_date.split('-');
+          return Number(y) === selectedYear && Number(m) === selectedMonth;
+        });
+      }
+
+      return { periodPayments, periodRentals, periodExpenses };
+    }
+
+    function renderCashflowView() {
+      updatePeriodDisplay();
+      const { periodPayments, periodRentals, periodExpenses } = getCashflowFilteredData();
+
+      const totalCuotas = periodPayments.reduce((acc, p) => acc + (Number(p.amount_paid) || 0), 0);
+      const totalAlquileres = periodRentals.reduce((acc, r) => acc + (Number(r.deposit_paid) || 0), 0);
+      const totalIngresos = totalCuotas + totalAlquileres;
+      const totalGastos = periodExpenses.reduce((acc, x) => acc + (Number(x.amount) || 0), 0);
+      const saldoNeto = totalIngresos - totalGastos;
+
+      // KPIs
+      const elKpiMembers = document.getElementById('cashflowKpiMembers');
+      if (elKpiMembers) elKpiMembers.innerText = formatMoney(totalCuotas);
+      const elKpiMembersCount = document.getElementById('cashflowKpiMembersCount');
+      if (elKpiMembersCount) elKpiMembersCount.innerText = `${periodPayments.length} cuotas cobradas`;
+
+      const elKpiRentals = document.getElementById('cashflowKpiRentals');
+      if (elKpiRentals) elKpiRentals.innerText = formatMoney(totalAlquileres);
+      const elKpiRentalsCount = document.getElementById('cashflowKpiRentalsCount');
+      if (elKpiRentalsCount) elKpiRentalsCount.innerText = `${periodRentals.length} evento(s) cobrado(s)`;
+
+      const elKpiTotalInc = document.getElementById('cashflowKpiTotalIncome');
+      if (elKpiTotalInc) elKpiTotalInc.innerText = formatMoney(totalIngresos);
+
+      const elKpiTotalExp = document.getElementById('cashflowKpiTotalExpenses');
+      if (elKpiTotalExp) elKpiTotalExp.innerText = formatMoney(totalGastos);
+      const elKpiExpensesCount = document.getElementById('cashflowKpiExpensesCount');
+      if (elKpiExpensesCount) elKpiExpensesCount.innerText = `${periodExpenses.length} comprobante(s)`;
+
+      const elKpiNet = document.getElementById('cashflowKpiNet');
+      if (elKpiNet) elKpiNet.innerText = formatMoney(saldoNeto);
+
+      const elNetBadge = document.getElementById('cashflowKpiNetBadge');
+      if (elNetBadge) {
+        if (saldoNeto >= 0) {
+          elNetBadge.innerText = 'SUPERÁVIT A RENDIR';
+          elNetBadge.className = 'text-[10px] font-black px-2.5 py-0.5 rounded-full inline-block mt-1 w-max bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+        } else {
+          elNetBadge.innerText = 'DÉFICIT DE CAJA';
+          elNetBadge.className = 'text-[10px] font-black px-2.5 py-0.5 rounded-full inline-block mt-1 w-max bg-rose-500/20 text-rose-300 border border-rose-500/30';
+        }
+      }
+
+      // Badges
+      const bRentals = document.getElementById('badgeCashflowRentalsCount');
+      if (bRentals) bRentals.innerText = rentals.length;
+      const bExpenses = document.getElementById('badgeCashflowExpensesCount');
+      if (bExpenses) bExpenses.innerText = expenses.length;
+
+      // Render activo
+      renderRentalsTable();
+      renderExpensesTable();
+      renderRendicionSummary();
+    }
+
+    function renderRentalsTable() {
+      const tbody = document.getElementById('rentalsTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const query = (document.getElementById('searchRentalsInput')?.value || '').toLowerCase().trim();
+      const statusFilter = document.getElementById('filterRentalStatus')?.value || 'all';
+
+      const filtered = rentals.filter(r => {
+        if (statusFilter !== 'all' && r.status !== statusFilter) return false;
+        if (!query) return true;
+        return (r.client_name || '').toLowerCase().includes(query) ||
+               (r.event_title || '').toLowerCase().includes(query) ||
+               (r.facility_name || '').toLowerCase().includes(query) ||
+               (r.client_dni || '').includes(query) ||
+               (r.receipt_number || '').toLowerCase().includes(query);
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" class="text-center py-8 text-slate-400">
+              <span class="text-3xl block mb-2">🏢</span>
+              No hay alquileres ni eventos registrados con los filtros actuales.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      filtered.sort((a,b) => new Date(b.rental_date) - new Date(a.rental_date));
+
+      filtered.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
+
+        const total = Number(r.total_price) || 0;
+        const paid = Number(r.deposit_paid) || 0;
+        const bal = Math.max(0, total - paid);
+
+        let statusBadge = '';
+        if (r.status === 'pagado_total' || bal === 0) {
+          statusBadge = '<span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">✓ Pagado Total</span>';
+        } else if (r.status === 'seña_abonada' || paid > 0) {
+          statusBadge = '<span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-900 border border-amber-300">⏳ Con Seña</span>';
+        } else if (r.status === 'cancelado') {
+          statusBadge = '<span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-slate-100 text-slate-500 border">Cancelado</span>';
+        } else {
+          statusBadge = '<span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-rose-100 text-rose-800 border border-rose-300">⚠️ Pendiente</span>';
+        }
+
+        const phoneClean = (r.client_phone || '').replace(/[^0-9]/g, '');
+        const waLink = phoneClean ? `https://wa.me/${phoneClean}?text=${encodeURIComponent(`Hola ${r.client_name}, nos comunicamos desde la Secretaría del Club Tucumán BB respecto a la reserva del evento "${r.event_title}".`)}` : null;
+
+        tr.innerHTML = `
+          <td class="py-3 px-3.5 whitespace-nowrap">
+            <div class="font-bold text-slate-800">${r.rental_date || '-'}</div>
+            <div class="text-[11px] text-slate-400">${r.rental_time || 'Horario a confirmar'}</div>
+          </td>
+          <td class="py-3 px-3.5 font-bold text-sky-800">${r.facility_name || 'Salón'}</td>
+          <td class="py-3 px-3.5">
+            <div class="font-bold text-slate-900">${r.event_title}</div>
+            <div class="text-slate-500 text-[11px] flex items-center gap-1.5">
+              <span>👤 ${r.client_name} ${r.client_dni ? `(DNI: ${r.client_dni})` : ''}</span>
+              ${waLink ? `<a href="${waLink}" target="_blank" class="text-emerald-600 font-bold hover:underline" title="Escribir por WhatsApp">💬</a>` : ''}
+            </div>
+          </td>
+          <td class="py-3 px-3.5 font-mono font-bold text-slate-700">${formatMoney(total)}</td>
+          <td class="py-3 px-3.5 font-mono font-black text-emerald-700">${formatMoney(paid)}</td>
+          <td class="py-3 px-3.5 font-mono font-bold ${bal > 0 ? 'text-rose-600' : 'text-slate-400'}">
+            ${bal > 0 ? formatMoney(bal) : '✓ Saldo $0'}
+          </td>
+          <td class="py-3 px-3.5">${statusBadge}</td>
+          <td class="py-3 px-3.5 font-mono text-[11px] text-slate-500">${r.receipt_number || '-'}</td>
+          <td class="py-3 px-3.5 text-right whitespace-nowrap space-x-1">
+            <button onclick="openRentalReceipt(${r.id})" class="px-2 py-1 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-bold rounded-lg border border-emerald-200 text-xs transition" title="Emitir Recibo">
+              📄 Recibo
+            </button>
+            <button onclick="openEditRentalModal(${r.id})" class="px-2 py-1 bg-sky-50 text-sky-800 hover:bg-sky-100 font-bold rounded-lg border border-sky-200 text-xs transition" title="Editar">
+              ✏️
+            </button>
+            ${currentUser.role_code === 'admin' ? `
+            <button onclick="deleteRental(${r.id})" class="px-2 py-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg text-xs transition" title="Eliminar">
+              🗑️
+            </button>` : ''}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderExpensesTable() {
+      const tbody = document.getElementById('expensesTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const query = (document.getElementById('searchExpensesInput')?.value || '').toLowerCase().trim();
+      const catFilter = document.getElementById('filterExpenseCategory')?.value || 'all';
+
+      const filtered = expenses.filter(x => {
+        if (catFilter !== 'all' && x.category !== catFilter) return false;
+        if (!query) return true;
+        return (x.description || '').toLowerCase().includes(query) ||
+               (x.supplier_name || '').toLowerCase().includes(query) ||
+               (x.invoice_number || '').toLowerCase().includes(query) ||
+               (x.category || '').toLowerCase().includes(query);
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" class="text-center py-8 text-slate-400">
+              <span class="text-3xl block mb-2">🧾</span>
+              No hay egresos ni gastos registrados con los filtros actuales.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      filtered.sort((a,b) => new Date(b.expense_date) - new Date(a.expense_date));
+
+      const catBadges = {
+        'Mantenimiento': 'bg-amber-100 text-amber-900 border-amber-300',
+        'Limpieza': 'bg-teal-100 text-teal-900 border-teal-300',
+        'Elementos Deportivos': 'bg-orange-100 text-orange-900 border-orange-300',
+        'Arbitraje': 'bg-indigo-100 text-indigo-900 border-indigo-300',
+        'Servicios': 'bg-blue-100 text-blue-900 border-blue-300',
+        'Insumos': 'bg-purple-100 text-purple-900 border-purple-300',
+        'Varios': 'bg-slate-100 text-slate-800 border-slate-300'
+      };
+
+      filtered.forEach(x => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition border-b border-slate-100';
+
+        const badgeClass = catBadges[x.category] || 'bg-slate-100 text-slate-700 border-slate-200';
+
+        tr.innerHTML = `
+          <td class="py-3 px-3.5 whitespace-nowrap font-bold text-slate-800">${x.expense_date || '-'}</td>
+          <td class="py-3 px-3.5 whitespace-nowrap">
+            <span class="px-2 py-0.5 text-[10px] font-bold rounded-full border ${badgeClass}">
+              ${x.category}
+            </span>
+          </td>
+          <td class="py-3 px-3.5">
+            <div class="font-semibold text-slate-900">${x.description}</div>
+            ${x.notes ? `<div class="text-[11px] text-slate-400 italic">${x.notes}</div>` : ''}
+          </td>
+          <td class="py-3 px-3.5 text-slate-700 font-medium">${x.supplier_name || '-'}</td>
+          <td class="py-3 px-3.5 font-mono text-[11px] text-slate-600">${x.invoice_number || '-'}</td>
+          <td class="py-3 px-3.5 whitespace-nowrap text-slate-600">${x.payment_method || 'Efectivo'}</td>
+          <td class="py-3 px-3.5 font-mono font-black text-rose-700 whitespace-nowrap">${formatMoney(x.amount)}</td>
+          <td class="py-3 px-3.5 text-slate-500 whitespace-nowrap text-[11px]">${x.registered_by || 'Secretaría'}</td>
+          <td class="py-3 px-3.5 text-right whitespace-nowrap space-x-1">
+            <button onclick="openEditExpenseModal(${x.id})" class="px-2 py-1 bg-sky-50 text-sky-800 hover:bg-sky-100 font-bold rounded-lg border border-sky-200 text-xs transition" title="Editar">
+              ✏️
+            </button>
+            ${currentUser.role_code === 'admin' ? `
+            <button onclick="deleteExpense(${x.id})" class="px-2 py-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg text-xs transition" title="Eliminar">
+              🗑️
+            </button>` : ''}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderRendicionSummary() {
+      const container = document.getElementById('rendicionScreenSummary');
+      if (!container) return;
+
+      const { periodPayments, periodRentals, periodExpenses } = getCashflowFilteredData();
+      const totalCuotas = periodPayments.reduce((acc, p) => acc + (Number(p.amount_paid) || 0), 0);
+      const totalAlquileres = periodRentals.reduce((acc, r) => acc + (Number(r.deposit_paid) || 0), 0);
+      const totalIngresos = totalCuotas + totalAlquileres;
+      const totalGastos = periodExpenses.reduce((acc, x) => acc + (Number(x.amount) || 0), 0);
+      const saldoNeto = totalIngresos - totalGastos;
+
+      container.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          <!-- Cuadro Ingresos -->
+          <div class="p-4 bg-emerald-50/60 border border-emerald-200 rounded-xl space-y-2">
+            <h4 class="font-extrabold text-xs text-emerald-950 uppercase flex items-center justify-between">
+              <span>💰 Ingresos Totales de Caja</span>
+              <span class="font-mono text-base text-emerald-700">${formatMoney(totalIngresos)}</span>
+            </h4>
+            <div class="divide-y divide-emerald-200/60 pt-1">
+              <div class="flex justify-between py-1.5">
+                <span class="text-slate-600">Cobranza de Cuotas Socios (${periodPayments.length} recibos):</span>
+                <span class="font-mono font-bold text-slate-800">${formatMoney(totalCuotas)}</span>
+              </div>
+              <div class="flex justify-between py-1.5">
+                <span class="text-slate-600">Alquileres de Salón / Eventos (${periodRentals.length} eventos):</span>
+                <span class="font-mono font-bold text-slate-800">${formatMoney(totalAlquileres)}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cuadro Egresos -->
+          <div class="p-4 bg-rose-50/60 border border-rose-200 rounded-xl space-y-2">
+            <h4 class="font-extrabold text-xs text-rose-950 uppercase flex items-center justify-between">
+              <span>📉 Gastos Totales Realizados</span>
+              <span class="font-mono text-base text-rose-700">${formatMoney(totalGastos)}</span>
+            </h4>
+            <div class="divide-y divide-rose-200/60 pt-1">
+              <div class="flex justify-between py-1.5">
+                <span class="text-slate-600">Comprobantes y Egresos Operativos (${periodExpenses.length}):</span>
+                <span class="font-mono font-bold text-slate-800">${formatMoney(totalGastos)}</span>
+              </div>
+              <div class="flex justify-between py-1.5 font-bold text-slate-900 bg-white px-2 rounded">
+                <span>Saldo Neto de Caja a Rendir:</span>
+                <span class="font-mono ${saldoNeto >= 0 ? 'text-emerald-700' : 'text-rose-700'}">${formatMoney(saldoNeto)}</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="p-3 bg-slate-50 border rounded-xl flex items-center justify-between">
+          <p class="text-slate-600">
+            📌 Este resumen consolida todo lo ingresado y egresado para el período de <strong>${monthNames[selectedMonth - 1]} ${selectedYear}</strong>. Pulsa el botón para generar la planilla imprimible con firmas para Tesorería.
+          </p>
+          <button onclick="openRendicionPlanilla()" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition whitespace-nowrap shadow-xs">
+            📄 Abrir Planilla Imprimible
+          </button>
+        </div>
+      `;
+    }
+
+    // CRUD DE ALQUILERES
+    async function handleCreateRental(e) {
+      e.preventDefault();
+      const total = Number(document.getElementById('rentalTotalPrice').value) || 0;
+      const deposit = Number(document.getElementById('rentalDepositPaid').value) || 0;
+      const balance = Math.max(0, total - deposit);
+
+      const nextNum = (rentals.length + 1);
+      const receiptNumber = `ALQ-0001-${String(nextNum).padStart(8, '0')}`;
+
+      const newRental = {
+        id: Date.now(),
+        event_title: document.getElementById('rentalEventTitle').value.trim(),
+        facility_name: document.getElementById('rentalFacility').value,
+        client_name: document.getElementById('rentalClientName').value.trim(),
+        client_dni: document.getElementById('rentalClientDni').value.trim(),
+        client_phone: document.getElementById('rentalClientPhone').value.trim(),
+        rental_date: document.getElementById('rentalDate').value,
+        rental_time: document.getElementById('rentalTime').value.trim(),
+        total_price: total,
+        deposit_paid: deposit,
+        balance_pending: balance,
+        payment_method: document.getElementById('rentalPaymentMethod').value,
+        status: document.getElementById('rentalStatus').value,
+        receipt_number: receiptNumber,
+        registered_by: currentUser.full_name || 'Secretaría',
+        notes: document.getElementById('rentalNotes').value.trim()
+      };
+
+      rentals.unshift(newRental);
+      saveToLocalStorage();
+      closeModal('modalNewRental');
+      e.target.reset();
+      refreshAllViews();
+
+      await syncRentalToSupabase(newRental, false);
+
+      if (confirm(`¡Alquiler registrado exitosamente!\nComprobante: ${receiptNumber}\n¿Deseas abrir e imprimir el recibo oficial para entregar al contratante?`)) {
+        openRentalReceipt(newRental.id);
+      }
+    }
+
+    function openEditRentalModal(id) {
+      const r = rentals.find(x => x.id === id);
+      if (!r) return;
+
+      document.getElementById('editRentalId').value = r.id;
+      document.getElementById('editRentalEventTitle').value = r.event_title;
+      document.getElementById('editRentalFacility').value = r.facility_name;
+      document.getElementById('editRentalClientName').value = r.client_name;
+      document.getElementById('editRentalClientDni').value = r.client_dni || '';
+      document.getElementById('editRentalClientPhone').value = r.client_phone || '';
+      document.getElementById('editRentalDate').value = r.rental_date;
+      document.getElementById('editRentalTime').value = r.rental_time || '';
+      document.getElementById('editRentalTotalPrice').value = r.total_price;
+      document.getElementById('editRentalDepositPaid').value = r.deposit_paid;
+      document.getElementById('editRentalBalancePendingDisplay').value = formatMoney(r.balance_pending);
+      document.getElementById('editRentalPaymentMethod').value = r.payment_method || 'Efectivo';
+      document.getElementById('editRentalStatus').value = r.status;
+      document.getElementById('editRentalNotes').value = r.notes || '';
+
+      openModal('modalEditRental');
+    }
+
+    async function handleUpdateRental(e) {
+      e.preventDefault();
+      const id = Number(document.getElementById('editRentalId').value);
+      const r = rentals.find(x => x.id === id);
+      if (!r) return;
+
+      const total = Number(document.getElementById('editRentalTotalPrice').value) || 0;
+      const deposit = Number(document.getElementById('editRentalDepositPaid').value) || 0;
+      const balance = Math.max(0, total - deposit);
+
+      r.event_title = document.getElementById('editRentalEventTitle').value.trim();
+      r.facility_name = document.getElementById('editRentalFacility').value;
+      r.client_name = document.getElementById('editRentalClientName').value.trim();
+      r.client_dni = document.getElementById('editRentalClientDni').value.trim();
+      r.client_phone = document.getElementById('editRentalClientPhone').value.trim();
+      r.rental_date = document.getElementById('editRentalDate').value;
+      r.rental_time = document.getElementById('editRentalTime').value.trim();
+      r.total_price = total;
+      r.deposit_paid = deposit;
+      r.balance_pending = balance;
+      r.payment_method = document.getElementById('editRentalPaymentMethod').value;
+      r.status = document.getElementById('editRentalStatus').value;
+      r.notes = document.getElementById('editRentalNotes').value.trim();
+
+      saveToLocalStorage();
+      closeModal('modalEditRental');
+      refreshAllViews();
+
+      await syncRentalToSupabase(r, true);
+    }
+
+    async function deleteRental(id) {
+      if (currentUser.role_code !== 'admin') {
+        alert('🚫 Permiso Denegado: Solo el Administrador puede eliminar registros de alquileres.');
+        return;
+      }
+      if (confirm('¿Estás seguro de anular y eliminar este registro de alquiler de salón?')) {
+        rentals = rentals.filter(x => x.id !== id);
+        saveToLocalStorage();
+        refreshAllViews();
+        await deleteRentalFromSupabase(id);
+      }
+    }
+
+    // CRUD DE GASTOS
+    async function handleCreateExpense(e) {
+      e.preventDefault();
+      const newExpense = {
+        id: Date.now(),
+        expense_date: document.getElementById('expenseDate').value,
+        category: document.getElementById('expenseCategory').value,
+        description: document.getElementById('expenseDesc').value.trim(),
+        amount: Number(document.getElementById('expenseAmount').value) || 0,
+        payment_method: document.getElementById('expensePaymentMethod').value,
+        supplier_name: document.getElementById('expenseSupplier').value.trim(),
+        invoice_number: document.getElementById('expenseInvoice').value.trim(),
+        registered_by: currentUser.full_name || 'Secretaría',
+        notes: document.getElementById('expenseNotes').value.trim()
+      };
+
+      expenses.unshift(newExpense);
+      saveToLocalStorage();
+      closeModal('modalNewExpense');
+      e.target.reset();
+      refreshAllViews();
+
+      await syncExpenseToSupabase(newExpense, false);
+      alert('✅ Gasto asentado exitosamente en el libro de caja.');
+    }
+
+    function openEditExpenseModal(id) {
+      const x = expenses.find(e => e.id === id);
+      if (!x) return;
+
+      document.getElementById('editExpenseId').value = x.id;
+      document.getElementById('editExpenseDate').value = x.expense_date;
+      document.getElementById('editExpenseCategory').value = x.category;
+      document.getElementById('editExpenseDesc').value = x.description;
+      document.getElementById('editExpenseAmount').value = x.amount;
+      document.getElementById('editExpensePaymentMethod').value = x.payment_method || 'Efectivo de Caja';
+      document.getElementById('editExpenseSupplier').value = x.supplier_name || '';
+      document.getElementById('editExpenseInvoice').value = x.invoice_number || '';
+      document.getElementById('editExpenseNotes').value = x.notes || '';
+
+      openModal('modalEditExpense');
+    }
+
+    async function handleUpdateExpense(e) {
+      e.preventDefault();
+      const id = Number(document.getElementById('editExpenseId').value);
+      const x = expenses.find(e => e.id === id);
+      if (!x) return;
+
+      x.expense_date = document.getElementById('editExpenseDate').value;
+      x.category = document.getElementById('editExpenseCategory').value;
+      x.description = document.getElementById('editExpenseDesc').value.trim();
+      x.amount = Number(document.getElementById('editExpenseAmount').value) || 0;
+      x.payment_method = document.getElementById('editExpensePaymentMethod').value;
+      x.supplier_name = document.getElementById('editExpenseSupplier').value.trim();
+      x.invoice_number = document.getElementById('editExpenseInvoice').value.trim();
+      x.notes = document.getElementById('editExpenseNotes').value.trim();
+
+      saveToLocalStorage();
+      closeModal('modalEditExpense');
+      refreshAllViews();
+
+      await syncExpenseToSupabase(x, true);
+    }
+
+    async function deleteExpense(id) {
+      if (currentUser.role_code !== 'admin') {
+        alert('🚫 Permiso Denegado: Solo el Administrador puede anular o eliminar registros de gastos.');
+        return;
+      }
+      if (confirm('¿Eliminar este comprobante de gasto del libro de caja?')) {
+        expenses = expenses.filter(x => x.id !== id);
+        saveToLocalStorage();
+        refreshAllViews();
+        await deleteExpenseFromSupabase(id);
+      }
+    }
+
+    // IMPRESIÓN DE RECIBO OFICIAL DE ALQUILER
+    function openRentalReceipt(rentalId) {
+      const r = rentals.find(x => x.id === rentalId);
+      if (!r) return;
+
+      document.getElementById('recRentalNumber').innerText = r.receipt_number || 'ALQ-0001';
+      document.getElementById('recRentalIssueDate').innerText = new Date().toLocaleDateString('es-AR');
+      document.getElementById('recRentalClient').innerText = `${r.client_name} ${r.client_dni ? `(DNI: ${r.client_dni})` : ''} - Tel: ${r.client_phone || '-'}`;
+      document.getElementById('recRentalFacility').innerText = r.facility_name;
+      document.getElementById('recRentalEvent').innerText = r.event_title;
+      document.getElementById('recRentalDateTime').innerText = `${r.rental_date} • ${r.rental_time || 'Horario pactado'}`;
+      document.getElementById('recRentalTotalPrice').innerText = formatMoney(r.total_price);
+      document.getElementById('recRentalAmountPaid').innerText = formatMoney(r.deposit_paid);
+      document.getElementById('recRentalBalance').innerText = formatMoney(r.balance_pending);
+      document.getElementById('recRentalMethod').innerText = r.payment_method || 'Efectivo';
+
+      const nRow = document.getElementById('recRentalNotesRow');
+      if (r.notes) {
+        nRow.classList.remove('hidden');
+        document.getElementById('recRentalNotes').innerText = r.notes;
+      } else {
+        nRow.classList.add('hidden');
+      }
+
+      openModal('modalRentalReceipt');
+    }
+
+    // IMPRESIÓN DE PLANILLA DE RENDICIÓN
+    function openRendicionPlanilla() {
+      const { periodPayments, periodRentals, periodExpenses } = getCashflowFilteredData();
+
+      const totalCuotas = periodPayments.reduce((acc, p) => acc + (Number(p.amount_paid) || 0), 0);
+      const totalAlquileres = periodRentals.reduce((acc, r) => acc + (Number(r.deposit_paid) || 0), 0);
+      const totalIngresos = totalCuotas + totalAlquileres;
+      const totalGastos = periodExpenses.reduce((acc, x) => acc + (Number(x.amount) || 0), 0);
+      const saldoNeto = totalIngresos - totalGastos;
+
+      document.getElementById('rendicionPrintPeriod').innerText = `Período: ${monthNames[selectedMonth - 1]} ${selectedYear}`;
+      document.getElementById('rendicionPrintDate').innerText = `Emisión: ${new Date().toLocaleDateString('es-AR')} ${new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}`;
+
+      document.getElementById('rendicionTotalIngresosPrint').innerText = formatMoney(totalIngresos);
+      document.getElementById('rendicionTotalGastosPrint').innerText = formatMoney(totalGastos);
+      document.getElementById('rendicionSaldoNetoPrint').innerText = formatMoney(saldoNeto);
+
+      const badge = document.getElementById('rendicionBadgePrint');
+      if (saldoNeto >= 0) {
+        badge.innerText = 'SUPERÁVIT A RENDIR EN EFECTIVO';
+        badge.className = 'text-[10px] font-bold text-emerald-700 block';
+      } else {
+        badge.innerText = 'DÉFICIT DE CAJA';
+        badge.className = 'text-[10px] font-bold text-rose-700 block';
+      }
+
+      document.getElementById('rendicionRentalsSubtotalPrint').innerText = `Subtotal: ${formatMoney(totalAlquileres)}`;
+      document.getElementById('rendicionCuotasSubtotalPrint').innerText = `Subtotal: ${formatMoney(totalCuotas)}`;
+      document.getElementById('rendicionCuotasSummaryText').innerText = 
+        `Se registraron ${periodPayments.length} cobro(s) de cuotas mensuales de socios en este período por un total de ${formatMoney(totalCuotas)}.`;
+
+      document.getElementById('rendicionExpensesSubtotalPrint').innerText = `Subtotal: ${formatMoney(totalGastos)}`;
+
+      // Llenar tabla de alquileres en la planilla
+      const tRentals = document.getElementById('rendicionRentalsTablePrint');
+      tRentals.innerHTML = '';
+      if (periodRentals.length === 0) {
+        tRentals.innerHTML = `<tr><td colspan="6" class="p-2 text-center text-slate-400 italic">No hubo alquileres en este período.</td></tr>`;
+      } else {
+        periodRentals.forEach(r => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td class="p-1.5 border-b font-medium">${r.rental_date}</td>
+            <td class="p-1.5 border-b font-semibold text-slate-800">${r.facility_name}</td>
+            <td class="p-1.5 border-b">${r.client_name}</td>
+            <td class="p-1.5 border-b text-slate-600">${r.event_title}</td>
+            <td class="p-1.5 border-b font-mono font-bold text-emerald-700">${formatMoney(r.deposit_paid)}</td>
+            <td class="p-1.5 border-b font-mono text-slate-500">${formatMoney(r.balance_pending)}</td>
+          `;
+          tRentals.appendChild(row);
+        });
+      }
+
+      // Llenar tabla de gastos en la planilla
+      const tExpenses = document.getElementById('rendicionExpensesTablePrint');
+      tExpenses.innerHTML = '';
+      if (periodExpenses.length === 0) {
+        tExpenses.innerHTML = `<tr><td colspan="6" class="p-2 text-center text-slate-400 italic">No se registraron gastos en este período.</td></tr>`;
+      } else {
+        periodExpenses.forEach(x => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td class="p-1.5 border-b font-medium">${x.expense_date}</td>
+            <td class="p-1.5 border-b font-bold text-slate-700">${x.category}</td>
+            <td class="p-1.5 border-b">${x.description}</td>
+            <td class="p-1.5 border-b text-slate-600">${x.supplier_name || '-'}</td>
+            <td class="p-1.5 border-b font-mono text-[10px] text-slate-500">${x.invoice_number || '-'}</td>
+            <td class="p-1.5 border-b font-mono font-bold text-rose-700 text-right">${formatMoney(x.amount)}</td>
+          `;
+          tExpenses.appendChild(row);
+        });
+      }
+
+      openModal('modalRendicionPlanilla');
+    }
+
+    // SINCRONIZACIÓN CON SUPABASE
+    async function syncRentalToSupabase(rental, isUpdate = false) {
+      if (!supabaseClient) return;
+      try {
+        const payload = {
+          event_title: rental.event_title,
+          facility_name: rental.facility_name,
+          client_name: rental.client_name,
+          client_dni: rental.client_dni || '',
+          client_phone: rental.client_phone || '',
+          rental_date: rental.rental_date,
+          rental_time: rental.rental_time || '',
+          total_price: rental.total_price,
+          deposit_paid: rental.deposit_paid,
+          balance_pending: rental.balance_pending,
+          payment_method: rental.payment_method || 'Efectivo',
+          status: rental.status || 'confirmado',
+          receipt_number: rental.receipt_number || '',
+          registered_by: rental.registered_by || 'Secretaría',
+          notes: rental.notes || ''
+        };
+
+        if (isUpdate && rental.id) {
+          const { error } = await supabaseClient.from('club_rentals').update(payload).eq('id', rental.id);
+          if (error) console.error('Error al actualizar alquiler en Supabase:', error);
+        } else {
+          const { data, error } = await supabaseClient.from('club_rentals').insert(payload).select();
+          if (error) {
+            console.error('Error al insertar alquiler en Supabase:', error);
+          } else if (data && data[0]) {
+            rental.id = data[0].id;
+            saveToLocalStorage();
+          }
+        }
+      } catch (err) {
+        console.error('Error syncRentalToSupabase:', err);
+      }
+    }
+
+    async function deleteRentalFromSupabase(id) {
+      if (!supabaseClient) return;
+      try {
+        await supabaseClient.from('club_rentals').delete().eq('id', id);
+      } catch(e) {
+        console.error('Error al borrar alquiler de Supabase:', e);
+      }
+    }
+
+    async function syncExpenseToSupabase(expense, isUpdate = false) {
+      if (!supabaseClient) return;
+      try {
+        const payload = {
+          expense_date: expense.expense_date,
+          category: expense.category,
+          description: expense.description,
+          amount: expense.amount,
+          payment_method: expense.payment_method || 'Efectivo',
+          supplier_name: expense.supplier_name || '',
+          invoice_number: expense.invoice_number || '',
+          registered_by: expense.registered_by || 'Secretaría',
+          notes: expense.notes || ''
+        };
+
+        if (isUpdate && expense.id) {
+          const { error } = await supabaseClient.from('club_expenses').update(payload).eq('id', expense.id);
+          if (error) console.error('Error al actualizar gasto en Supabase:', error);
+        } else {
+          const { data, error } = await supabaseClient.from('club_expenses').insert(payload).select();
+          if (error) {
+            console.error('Error al insertar gasto en Supabase:', error);
+          } else if (data && data[0]) {
+            expense.id = data[0].id;
+            saveToLocalStorage();
+          }
+        }
+      } catch (err) {
+        console.error('Error syncExpenseToSupabase:', err);
+      }
+    }
+
+    async function deleteExpenseFromSupabase(id) {
+      if (!supabaseClient) return;
+      try {
+        await supabaseClient.from('club_expenses').delete().eq('id', id);
+      } catch(e) {
+        console.error('Error al borrar gasto de Supabase:', e);
+      }
+    }
+
     // IMPRESIÓN OFICIAL DEL RECIBO DEL TALONARIO
     function printReceipt() {
       if (!currentReceiptData) return;
@@ -3560,6 +5275,54 @@
           console.warn('Tabla club_users aún no creada en Supabase:', eU);
         }
 
+        // 7. Alquileres de Instalaciones y Eventos Particulares
+        try {
+          const { data: dbRentals, error: errRentals } = await supabaseClient.from('club_rentals').select('*').order('id', { ascending: false });
+          if (!errRentals && dbRentals && dbRentals.length > 0) {
+            rentals = dbRentals.map(r => ({
+              id: r.id,
+              event_title: r.event_title,
+              facility_name: r.facility_name || 'Salón Principal',
+              client_name: r.client_name,
+              client_dni: r.client_dni || '',
+              client_phone: r.client_phone || '',
+              rental_date: r.rental_date,
+              rental_time: r.rental_time || '',
+              total_price: Number(r.total_price || 0),
+              deposit_paid: Number(r.deposit_paid || 0),
+              balance_pending: Number(r.balance_pending || 0),
+              payment_method: r.payment_method || 'Efectivo',
+              status: r.status || 'confirmado',
+              receipt_number: r.receipt_number || '',
+              registered_by: r.registered_by || 'Secretaría',
+              notes: r.notes || ''
+            }));
+          }
+        } catch (eRentals) {
+          console.warn('Tabla club_rentals no accesible:', eRentals);
+        }
+
+        // 8. Gastos y Egresos Operativos
+        try {
+          const { data: dbExpenses, error: errExpenses } = await supabaseClient.from('club_expenses').select('*').order('id', { ascending: false });
+          if (!errExpenses && dbExpenses && dbExpenses.length > 0) {
+            expenses = dbExpenses.map(x => ({
+              id: x.id,
+              expense_date: x.expense_date,
+              category: x.category || 'Mantenimiento',
+              description: x.description,
+              amount: Number(x.amount || 0),
+              payment_method: x.payment_method || 'Efectivo',
+              supplier_name: x.supplier_name || '',
+              invoice_number: x.invoice_number || '',
+              registered_by: x.registered_by || 'Secretaría',
+              notes: x.notes || ''
+            }));
+          }
+        } catch (eExpenses) {
+          console.warn('Tabla club_expenses no accesible:', eExpenses);
+        }
+
         saveToLocalStorage();
         applyUserPermissions();
         refreshAllViews();
@@ -3696,6 +5459,117 @@
         await supabaseClient.from('payments').delete().eq('id', id);
       } catch (e) {
         console.error('Error al eliminar pago de Supabase:', e);
+      }
+    }
+
+    // FUNCIÓN DE MANTENIMIENTO: UNIFICAR Y LIMPIAR ACTIVIDADES REPETIDAS EN SUPABASE
+    async function cleanDuplicateActivitiesInSupabase() {
+      if (!supabaseClient) {
+        alert('Supabase no está conectado actualmente. Conéctalo primero para depurar la base de datos.');
+        return;
+      }
+      if (currentUser.role_code !== 'admin') {
+        alert('🚫 Permiso Denegado: Solo el Administrador puede ejecutar la depuración de base de datos.');
+        return;
+      }
+
+      if (!confirm('¿Deseas buscar y unificar actividades con nombres duplicados en Supabase? Los pagos y socios se reasignarán a la actividad más reciente para no perder ningún historial.')) {
+        return;
+      }
+
+      const btn = document.getElementById('btnCleanDups');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = '⏳ Unificando...';
+      }
+
+      try {
+        const { data: dbActs, error: errActs } = await supabaseClient
+          .from('activities')
+          .select('*')
+          .order('id', { ascending: true });
+
+        if (errActs || !dbActs) {
+          alert('Error al consultar actividades en Supabase: ' + (errActs?.message || ''));
+          return;
+        }
+
+        const groups = {};
+        dbActs.forEach(a => {
+          const key = (a.name || '').trim().toLowerCase();
+          if (!groups[key]) groups[key] = [];
+          groups[key].push(a);
+        });
+
+        let totalCleaned = 0;
+
+        for (const key in groups) {
+          const list = groups[key];
+          if (list.length > 1) {
+            const keeper = list[list.length - 1]; // La más reciente
+            const duplicates = list.slice(0, list.length - 1);
+
+            for (const dup of duplicates) {
+              console.log(`Unificando duplicado '${dup.name}' (ID ${dup.id}) -> Conservado ID ${keeper.id}`);
+
+              // A. Reasignar pagos al ID conservado
+              await supabaseClient
+                .from('payments')
+                .update({ activity_id: keeper.id })
+                .eq('activity_id', dup.id);
+
+              // B. Reasignar socios en member_activities
+              const { data: enrolls } = await supabaseClient
+                .from('member_activities')
+                .select('member_id')
+                .eq('activity_id', dup.id);
+
+              if (enrolls && enrolls.length > 0) {
+                for (const en of enrolls) {
+                  const { data: existing } = await supabaseClient
+                    .from('member_activities')
+                    .select('member_id')
+                    .eq('member_id', en.member_id)
+                    .eq('activity_id', keeper.id);
+
+                  if (!existing || existing.length === 0) {
+                    await supabaseClient.from('member_activities').insert({
+                      member_id: en.member_id,
+                      activity_id: keeper.id
+                    });
+                  }
+                }
+                await supabaseClient.from('member_activities').delete().eq('activity_id', dup.id);
+              }
+
+              // C. Eliminar la actividad repetida
+              const { error: delErr } = await supabaseClient
+                .from('activities')
+                .delete()
+                .eq('id', dup.id);
+
+              if (!delErr) totalCleaned++;
+            }
+          }
+        }
+
+        await loadDataFromSupabase();
+        refreshAllViews();
+
+        if (totalCleaned > 0) {
+          alert(`✅ ¡Operación exitosa! Se unificaron y eliminaron ${totalCleaned} actividad(es) repetida(s) en Supabase. Todos los pagos y socios quedaron vinculados correctamente.`);
+        } else {
+          alert('✨ Tu base de datos en Supabase ya está totalmente limpia y no tiene actividades duplicadas.');
+        }
+
+      } catch (err) {
+        console.error('Error al depurar actividades:', err);
+        alert('Ocurrió un error al limpiar duplicados: ' + (err.message || err));
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = '🧹 Unificar Actividades Duplicadas';
+        }
       }
     }
 
@@ -3867,8 +5741,12 @@ ON CONFLICT (id) DO NOTHING;`;
       const backup = {
         clubSettings,
         activities,
+        basketballCategories,
         members,
         payments,
+        talonarios,
+        rentals,
+        expenses,
         exportDate: new Date().toISOString()
       };
 
