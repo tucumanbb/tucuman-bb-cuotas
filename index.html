@@ -57,6 +57,112 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
+  <!-- ==================================================================== -->
+  <!-- PANTALLA OFICIAL DE INICIO DE SESIÓN (LOGIN) -->
+  <!-- ==================================================================== -->
+  <div id="loginScreen" class="fixed inset-0 z-[100] bg-gradient-to-br from-slate-950 via-[#001D42] to-slate-900 flex items-center justify-center p-4 overflow-y-auto hidden">
+    <div class="max-w-md w-full my-auto space-y-5">
+      
+      <!-- Encabezado Institucional con Escudo Oficial -->
+      <div class="text-center text-white space-y-2">
+        <div class="relative inline-block">
+          <img src="club_logo.jpg?v=20261001" alt="Escudo Club Tucumán BB" class="w-20 h-20 rounded-full object-cover mx-auto border-4 border-white/90 shadow-2xl bg-white" onerror="if(!this.dataset.triedPng){this.dataset.triedPng=1;this.src='club_logo.png?v=20261001';}else{this.outerHTML='<div class=\'w-20 h-20 rounded-full bg-tucuman-sky flex items-center justify-center font-black text-white text-2xl border-4 border-white shadow-2xl mx-auto\'>TBB</div>';}">
+          <span class="absolute -bottom-1 -right-1 bg-emerald-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-slate-900 uppercase tracking-wider">
+            Oficial
+          </span>
+        </div>
+        <h1 class="text-2xl font-black tracking-tight uppercase text-white drop-shadow-md">CLUB TUCUMÁN BB</h1>
+        <p class="text-xs text-sky-200 font-medium">Sistema de Gestión de Socios, Cobranzas & Caja</p>
+        <p class="text-[11px] text-slate-400">Fundado el 10 de Noviembre de 1928 • Suipacha 1160</p>
+      </div>
+
+      <!-- Tarjeta del Formulario de Ingreso -->
+      <div class="bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-100 space-y-4">
+        <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
+          <div>
+            <h2 class="text-lg font-black text-tucuman-navy">Iniciar Sesión</h2>
+            <p class="text-xs text-slate-500">Ingresa tus credenciales para acceder al sistema</p>
+          </div>
+          <span class="text-2xl">🔐</span>
+        </div>
+
+        <form onsubmit="handleLoginSubmit(event)" class="space-y-4">
+          <!-- Selector de Usuario -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Usuario / Perfil del Club</label>
+            <select id="loginUserSelect" onchange="onLoginUserSelectChanged(this.value)" class="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl font-bold text-slate-800 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-tucuman-sky text-sm">
+              <!-- Render dinámico de usuarios -->
+            </select>
+          </div>
+
+          <!-- Tarjeta Informativa de Permisos del Rol Seleccionado -->
+          <div id="loginRoleInfoCard" class="p-3 bg-sky-50 border border-sky-200 rounded-xl space-y-1 text-xs">
+            <div class="flex items-center justify-between">
+              <span id="loginRoleBadge" class="font-bold text-sky-950 flex items-center gap-1.5">
+                👑 Rol Administrador
+              </span>
+              <span id="loginRoleScope" class="text-[10px] bg-sky-200 text-sky-900 font-bold px-2 py-0.5 rounded-full">
+                Acceso Total
+              </span>
+            </div>
+            <p id="loginRoleDesc" class="text-slate-600 text-[11px] leading-relaxed">
+              Acceso completo: cobranzas, socios, balances, alquileres, gastos, configuración general y usuarios.
+            </p>
+          </div>
+
+          <!-- Campo de PIN o Contraseña -->
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-xs font-bold text-slate-700">PIN o Contraseña</label>
+              <span class="text-[11px] text-slate-400">PIN por defecto: <strong>1234</strong></span>
+            </div>
+            <div class="relative">
+              <input type="password" id="loginPinInput" required placeholder="Ingresa tu clave (ej: 1234)" class="w-full pl-3.5 pr-10 py-2.5 border border-slate-300 rounded-xl font-mono text-sm tracking-wider focus:ring-2 focus:ring-tucuman-sky bg-slate-50 focus:bg-white">
+              <button type="button" onclick="toggleLoginPinVisibility()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-700 text-sm" title="Mostrar/Ocultar clave">
+                <span id="loginPinEyeIcon">👁️</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Mensaje de Error (oculto por defecto) -->
+          <div id="loginErrorMessage" class="hidden p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs font-semibold flex items-center gap-2">
+            <span>⚠️</span>
+            <span id="loginErrorText">Contraseña incorrecta. Inténtalo nuevamente.</span>
+          </div>
+
+          <!-- Botón de Ingreso -->
+          <button type="submit" class="w-full py-3 px-4 bg-gradient-to-r from-tucuman-navy to-[#004B9B] hover:from-slate-900 hover:to-tucuman-navy text-white font-extrabold rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 text-sm tracking-wide">
+            <span>🚀</span>
+            <span>Ingresar al Sistema</span>
+          </button>
+        </form>
+
+        <!-- Accesos Rápidos de Prueba (Chips) -->
+        <div class="pt-2 border-t border-slate-100">
+          <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2 text-center">Acceso rápido para demostración / pruebas:</p>
+          <div class="grid grid-cols-3 gap-1.5">
+            <button type="button" onclick="quickLogin('admin')" class="px-2 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-900 font-bold text-[11px] rounded-lg border border-blue-200 transition text-center truncate" title="Ingresar como Administrador">
+              👑 Admin
+            </button>
+            <button type="button" onclick="quickLogin('secretaria')" class="px-2 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-900 font-bold text-[11px] rounded-lg border border-sky-200 transition text-center truncate" title="Ingresar como Secretaría">
+              📑 Secretaría
+            </button>
+            <button type="button" onclick="quickLogin('entrenador')" class="px-2 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-[11px] rounded-lg border border-amber-200 transition text-center truncate" title="Ingresar como Entrenador">
+              🏀 Profesor
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pie Institucional -->
+      <div class="text-center text-xs text-slate-400">
+        <p>Club Tucumán BB • San Miguel de Tucumán</p>
+        <p class="text-[11px] text-slate-500">Correo: tucumanbbcuotas@gmail.com</p>
+      </div>
+
+    </div>
+  </div>
+
   <!-- TOP BAR INSTITUCIONAL -->
   <header class="bg-tucuman-navy text-white shadow-lg sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -71,7 +177,7 @@
         </div>
 
         <!-- Badges, Usuario y Estado de Conexión -->
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 sm:gap-3">
           <!-- Selector de Usuario / Rol Activo -->
           <button onclick="openModal('modalSwitchUser')" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-xl border border-slate-700 text-xs text-white transition shadow-sm" title="Cambiar usuario o rol">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-400" id="userRoleDot"></span>
@@ -89,6 +195,11 @@
 
           <button onclick="switchTab('config')" id="btnTopConfig" class="text-xs bg-slate-800 hover:bg-slate-700 text-sky-200 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-1.5 transition">
             ⚙️ <span class="hidden lg:inline">Configuración</span>
+          </button>
+
+          <!-- Botón Cerrar Sesión -->
+          <button onclick="handleLogout()" class="text-xs bg-rose-950/80 hover:bg-rose-900 text-rose-200 hover:text-white px-2.5 sm:px-3 py-1.5 rounded-xl border border-rose-800/60 flex items-center gap-1.5 transition shadow-sm" title="Cerrar sesión activa y volver al inicio">
+            🚪 <span class="hidden sm:inline font-bold">Salir</span>
           </button>
         </div>
       </div>
@@ -1534,7 +1645,7 @@
         <div>
           <div class="flex items-center justify-between mb-1">
             <label class="block text-xs font-bold text-slate-600">Espacio o Instalación Alquilada</label>
-            <button type="button" onclick="openManageFacilities()" class="text-[11px] text-emerald-700 hover:text-emerald-900 font-bold flex items-center gap-1">
+            <button type="button" id="btnManageFacilitiesQuick" onclick="openManageFacilities()" class="text-[11px] text-emerald-700 hover:text-emerald-900 font-bold flex items-center gap-1">
               ⚙️ Gestionar Espacios
             </button>
           </div>
@@ -1629,7 +1740,7 @@
         <div>
           <div class="flex items-center justify-between mb-1">
             <label class="block text-xs font-bold text-slate-600">Espacio Alquilado</label>
-            <button type="button" onclick="openManageFacilities()" class="text-[11px] text-emerald-700 hover:text-emerald-900 font-bold flex items-center gap-1">
+            <button type="button" id="btnEditRentalManageQuick" onclick="openManageFacilities()" class="text-[11px] text-emerald-700 hover:text-emerald-900 font-bold flex items-center gap-1">
               ⚙️ Gestionar
             </button>
           </div>
@@ -1725,7 +1836,7 @@
           <div>
             <div class="flex items-center justify-between mb-1">
               <label class="block text-xs font-bold text-slate-600">Rubro / Categoría</label>
-              <button type="button" onclick="openManageExpenseCategories()" class="text-[11px] text-rose-700 hover:text-rose-900 font-bold flex items-center gap-1">
+              <button type="button" id="btnManageExpenseCategoriesQuick" onclick="openManageExpenseCategories()" class="text-[11px] text-rose-700 hover:text-rose-900 font-bold flex items-center gap-1">
                 ⚙️ Gestionar
               </button>
             </div>
@@ -1794,7 +1905,7 @@
           <div>
             <div class="flex items-center justify-between mb-1">
               <label class="block text-xs font-bold text-slate-600">Rubro</label>
-              <button type="button" onclick="openManageExpenseCategories()" class="text-[11px] text-rose-700 hover:text-rose-900 font-bold flex items-center gap-1">
+              <button type="button" id="btnEditExpenseManageQuick" onclick="openManageExpenseCategories()" class="text-[11px] text-rose-700 hover:text-rose-900 font-bold flex items-center gap-1">
                 ⚙️ Gestionar
               </button>
             </div>
@@ -2450,6 +2561,8 @@
       checkSavedSupabaseConfig();
       updatePeriodDisplay();
       populateBasketballCategorySelects();
+      populateLoginUsers();
+      checkAuthStatus();
       applyUserPermissions();
       refreshAllViews();
     });
@@ -2496,6 +2609,10 @@
       if (savedExpenseCategories) {
         try { expenseCategories = JSON.parse(savedExpenseCategories); } catch(e) {}
       }
+      const savedAuth = localStorage.getItem('tbb_authenticated');
+      if (savedAuth !== null) {
+        isUserAuthenticated = savedAuth === 'true';
+      }
 
       document.getElementById('cfgClubName').value = clubSettings.clubName;
       document.getElementById('cfgClubEmail').value = clubSettings.officialGmail;
@@ -2520,6 +2637,173 @@
       localStorage.setItem('tbb_expense_categories', JSON.stringify(expenseCategories));
       localStorage.setItem('tbb_users', JSON.stringify(clubUsers));
       localStorage.setItem('tbb_current_user', JSON.stringify(currentUser));
+    }
+
+    // ====================================================================
+    // SISTEMA DE AUTENTICACIÓN Y PANTALLA DE LOGUEO
+    // ====================================================================
+
+    let isUserAuthenticated = localStorage.getItem('tbb_authenticated') === 'true';
+
+    function checkAuthStatus() {
+      const loginOverlay = document.getElementById('loginScreen');
+      if (!isUserAuthenticated) {
+        if (loginOverlay) loginOverlay.classList.remove('hidden');
+        populateLoginUsers();
+        const firstUser = clubUsers.find(u => u.is_active !== false);
+        onLoginUserSelectChanged(firstUser ? firstUser.username : 'admin');
+      } else {
+        if (loginOverlay) loginOverlay.classList.add('hidden');
+      }
+    }
+
+    function showLoginScreen() {
+      const loginOverlay = document.getElementById('loginScreen');
+      if (loginOverlay) loginOverlay.classList.remove('hidden');
+      populateLoginUsers();
+      const pinInput = document.getElementById('loginPinInput');
+      if (pinInput) pinInput.value = '';
+      const errBox = document.getElementById('loginErrorMessage');
+      if (errBox) errBox.classList.add('hidden');
+      onLoginUserSelectChanged(currentUser?.username || 'admin');
+    }
+
+    function hideLoginScreen() {
+      const loginOverlay = document.getElementById('loginScreen');
+      if (loginOverlay) loginOverlay.classList.add('hidden');
+    }
+
+    function populateLoginUsers() {
+      const select = document.getElementById('loginUserSelect');
+      if (!select) return;
+      const activeUsers = clubUsers.filter(u => u.is_active !== false);
+      select.innerHTML = activeUsers.map(u => {
+        const role = clubRoles.find(r => r.code === u.role_code) || { name: u.role_code };
+        const emoji = u.role_code === 'admin' ? '👑' : (u.role_code === 'secretario' ? '📑' : '🏀');
+        return `<option value="${u.username}" ${currentUser && currentUser.username === u.username ? 'selected' : ''}>${emoji} ${u.full_name} (@${u.username}) - [${role.name}]</option>`;
+      }).join('');
+    }
+
+    function onLoginUserSelectChanged(username) {
+      const u = clubUsers.find(x => x.username === username);
+      if (!u) return;
+      const role = clubRoles.find(r => r.code === u.role_code) || { name: u.role_code, description: '' };
+      
+      const badge = document.getElementById('loginRoleBadge');
+      const scope = document.getElementById('loginRoleScope');
+      const desc = document.getElementById('loginRoleDesc');
+      const card = document.getElementById('loginRoleInfoCard');
+
+      if (badge) {
+        const emoji = u.role_code === 'admin' ? '👑' : (u.role_code === 'secretario' ? '📑' : '🏀');
+        badge.innerText = `${emoji} Rol ${role.name}`;
+      }
+      if (scope) {
+        if (u.role_code === 'admin') {
+          scope.innerText = 'Acceso Total';
+          scope.className = 'text-[10px] bg-blue-200 text-blue-900 font-bold px-2 py-0.5 rounded-full';
+        } else if (u.role_code === 'secretario') {
+          scope.innerText = 'Cobranzas & Socios';
+          scope.className = 'text-[10px] bg-sky-200 text-sky-900 font-bold px-2 py-0.5 rounded-full';
+        } else {
+          scope.innerText = 'Consulta Deportiva';
+          scope.className = 'text-[10px] bg-amber-200 text-amber-900 font-bold px-2 py-0.5 rounded-full';
+        }
+      }
+      if (desc) {
+        if (u.role_code === 'admin') {
+          desc.innerText = 'Acceso total al sistema: cobranzas, padrón de socios, balances, alquileres, gastos, configuración general y administración de usuarios.';
+        } else if (u.role_code === 'secretario') {
+          desc.innerText = 'Acceso operativo: cobro de cuotas, emisión de recibos, registro de socios, alquileres y gastos de caja. Sin acceso a configuración de espacios/rubros ni usuarios.';
+        } else {
+          desc.innerText = 'Acceso deportivo: consulta del padrón de socios para verificación de cuotas al día o deuda y aviso por WhatsApp. Sin acceso a cobranzas ni caja.';
+        }
+      }
+      if (card) {
+        if (u.role_code === 'admin') card.className = 'p-3 bg-blue-50 border border-blue-200 rounded-xl space-y-1 text-xs';
+        else if (u.role_code === 'secretario') card.className = 'p-3 bg-sky-50 border border-sky-200 rounded-xl space-y-1 text-xs';
+        else card.className = 'p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-1 text-xs';
+      }
+    }
+
+    function toggleLoginPinVisibility() {
+      const pinInput = document.getElementById('loginPinInput');
+      const eyeIcon = document.getElementById('loginPinEyeIcon');
+      if (!pinInput) return;
+      if (pinInput.type === 'password') {
+        pinInput.type = 'text';
+        if (eyeIcon) eyeIcon.innerText = '🙈';
+      } else {
+        pinInput.type = 'password';
+        if (eyeIcon) eyeIcon.innerText = '👁️';
+      }
+    }
+
+    function handleLoginSubmit(e) {
+      e.preventDefault();
+      const username = document.getElementById('loginUserSelect')?.value;
+      const enteredPin = document.getElementById('loginPinInput')?.value.trim();
+      const errBox = document.getElementById('loginErrorMessage');
+      const errText = document.getElementById('loginErrorText');
+
+      const u = clubUsers.find(x => x.username === username);
+      if (!u) {
+        if (errBox) errBox.classList.remove('hidden');
+        if (errText) errText.innerText = 'Usuario no encontrado en el sistema.';
+        return;
+      }
+
+      if (u.is_active === false) {
+        if (errBox) errBox.classList.remove('hidden');
+        if (errText) errText.innerText = 'Esta cuenta ha sido desactivada por la administración del club.';
+        return;
+      }
+
+      const validPin = (u.pin_code || '1234').trim();
+      if (enteredPin !== validPin) {
+        if (errBox) errBox.classList.remove('hidden');
+        if (errText) errText.innerText = 'PIN o contraseña incorrecta. Vuelve a intentar (PIN por defecto: 1234).';
+        const pinInput = document.getElementById('loginPinInput');
+        if (pinInput) {
+          pinInput.focus();
+          pinInput.select();
+        }
+        return;
+      }
+
+      // Login exitoso
+      if (errBox) errBox.classList.add('hidden');
+      currentUser = u;
+      isUserAuthenticated = true;
+      localStorage.setItem('tbb_authenticated', 'true');
+      localStorage.setItem('tbb_current_user', JSON.stringify(currentUser));
+
+      hideLoginScreen();
+      applyUserPermissions();
+      refreshAllViews();
+    }
+
+    function quickLogin(username) {
+      const select = document.getElementById('loginUserSelect');
+      const pinInput = document.getElementById('loginPinInput');
+      if (select) {
+        select.value = username;
+        onLoginUserSelectChanged(username);
+      }
+      const u = clubUsers.find(x => x.username === username);
+      if (pinInput && u) {
+        pinInput.value = u.pin_code || '1234';
+      }
+      const form = document.querySelector('#loginScreen form');
+      if (form) form.requestSubmit();
+    }
+
+    function handleLogout() {
+      if (confirm(`¿Cerrar sesión activa de "${currentUser.full_name}"?`)) {
+        isUserAuthenticated = false;
+        localStorage.removeItem('tbb_authenticated');
+        showLoginScreen();
+      }
     }
 
     // CONTROL DE PERMISOS SEGÚN ROL
@@ -2592,6 +2876,33 @@
       // Botón de agregar nuevo socio en el Padrón de Socios: Administrador y Secretario pueden; Entrenador NO puede
       const btnMembersNewMember = document.getElementById('btnMembersNewMember');
       if (btnMembersNewMember) btnMembersNewMember.style.display = (currentUser.role_code === 'entrenador') ? 'none' : 'inline-flex';
+
+      // Subpestaña y gestión de Espacios & Rubros en Caja: SOLO Administrador
+      const subTabCashflowConfig = document.getElementById('subTabCashflowConfig');
+      if (subTabCashflowConfig) {
+        subTabCashflowConfig.style.display = isAdmin ? 'inline-flex' : 'none';
+      }
+      const vCashflowConfig = document.getElementById('cashflowSubViewConfig');
+      if (vCashflowConfig && !isAdmin) {
+        vCashflowConfig.classList.add('hidden');
+      }
+
+      const btnNewRentalManage = document.getElementById('btnManageFacilitiesQuick');
+      if (btnNewRentalManage) btnNewRentalManage.style.display = isAdmin ? 'inline-flex' : 'none';
+
+      const btnEditRentalManage = document.getElementById('btnEditRentalManageQuick');
+      if (btnEditRentalManage) btnEditRentalManage.style.display = isAdmin ? 'inline-flex' : 'none';
+
+      const btnNewExpenseManage = document.getElementById('btnManageExpenseCategoriesQuick');
+      if (btnNewExpenseManage) btnNewExpenseManage.style.display = isAdmin ? 'inline-flex' : 'none';
+
+      const btnEditExpenseManage = document.getElementById('btnEditExpenseManageQuick');
+      if (btnEditExpenseManage) btnEditExpenseManage.style.display = isAdmin ? 'inline-flex' : 'none';
+
+      // Si no es admin y estaba en la subpestaña config de caja, redirigir a rentals
+      if (!isAdmin && cashflowSubTab === 'config') {
+        switchCashflowSubTab('rentals');
+      }
 
       if (currentUser.role_code === 'entrenador') {
         if (navActivities) navActivities.classList.add('hidden');
