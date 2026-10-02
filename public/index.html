@@ -413,9 +413,14 @@
             <h2 class="text-xl font-extrabold text-tucuman-navy">Padrón de Socios y Estado de Cuotas</h2>
             <p class="text-xs text-slate-500">Filtrado inteligente por categorías de básquet, disciplinas y control de morosidad</p>
           </div>
-          <button id="btnMembersNewMember" onclick="openModal('modalNewMember')" class="bg-tucuman-navy hover:bg-slate-800 text-white font-bold px-4 py-2.5 rounded-xl shadow-sm text-sm transition">
-            + Nuevo Socio
-          </button>
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" onclick="openImportMembersModal()" id="btnMembersImportCsv" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-2.5 rounded-xl shadow-sm text-xs sm:text-sm flex items-center gap-1.5 transition">
+              📥 Importar Excel / CSV
+            </button>
+            <button id="btnMembersNewMember" onclick="openModal('modalNewMember')" class="bg-tucuman-navy hover:bg-slate-800 text-white font-bold px-4 py-2.5 rounded-xl shadow-sm text-xs sm:text-sm transition">
+              + Nuevo Socio
+            </button>
+          </div>
         </div>
 
         <!-- Buscador y Filtros Completos -->
@@ -688,7 +693,7 @@
         <button onclick="switchCashflowSubTab('rendicion')" id="subTabCashflowRendicion" class="py-2.5 px-4 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition whitespace-nowrap">
           📋 Resumen de Rendición
         </button>
-        <button onclick="switchCashflowSubTab('config')" id="subTabCashflowConfig" class="py-2.5 px-4 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition whitespace-nowrap">
+        <button onclick="switchCashflowSubTab('config')" id="subTabCashflowConfig" style="display: none;" class="py-2.5 px-4 font-bold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition whitespace-nowrap">
           ⚙️ Espacios & Rubros <span class="text-[10px] bg-indigo-100 text-indigo-700 font-bold px-1.5 py-0.5 rounded-full">Admin</span>
         </button>
       </div>
@@ -1081,6 +1086,37 @@
         </div>
       </div>
 
+      <!-- Importación Masiva de Socios (Excel / CSV) -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+        <div class="flex items-center gap-3">
+          <span class="text-2xl">📊</span>
+          <div>
+            <h3 class="text-base font-bold text-tucuman-navy">Importación Masiva de Socios (Excel / CSV)</h3>
+            <p class="text-xs text-slate-500">Carga la nómina completa de socios del club desde una planilla de cálculo</p>
+          </div>
+        </div>
+
+        <div class="p-4 bg-emerald-50/70 border border-emerald-200 rounded-xl space-y-2 text-xs text-emerald-950">
+          <div class="flex items-center gap-2 font-bold text-emerald-900">
+            <span>💡</span> ¿Cómo preparar tu archivo para importar?
+          </div>
+          <ol class="list-decimal list-inside space-y-1 text-slate-600 text-[11px] leading-relaxed">
+            <li>Descarga la <strong>Plantilla Oficial de Socios</strong> que preparamos para el club.</li>
+            <li>Abre la plantilla en Excel, Google Sheets o Calc y pega la lista de socios.</li>
+            <li>Vuelve a esta pantalla y sube el archivo. El sistema detectará automáticamente socios nuevos, repetidos por DNI y las actividades correspondientes.</li>
+          </ol>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3 pt-1">
+          <button type="button" onclick="downloadMembersCsvTemplate()" class="flex-1 bg-white hover:bg-slate-50 border-2 border-emerald-600 text-emerald-700 font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-xs transition">
+            📄 Descargar Plantilla Oficial Excel / CSV
+          </button>
+          <button type="button" onclick="openImportMembersModal()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-sm transition">
+            📥 Subir y Procesar Planilla de Socios
+          </button>
+        </div>
+      </div>
+
       <!-- Respaldo y Exportación -->
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3">
         <h3 class="text-base font-bold text-tucuman-navy">📦 Copia de Seguridad Rápida (Backup)</h3>
@@ -1241,6 +1277,112 @@
           <button type="submit" class="flex-1 bg-tucuman-navy hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl text-sm transition">Guardar Cambios</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- MODAL: IMPORTACIÓN MASIVA DE SOCIOS (EXCEL / CSV) -->
+  <div id="modalImportMembers" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-7 space-y-5 shadow-2xl max-h-[92vh] overflow-y-auto">
+      
+      <!-- Encabezado del Modal -->
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-3">
+          <span class="text-3xl">📊</span>
+          <div>
+            <h3 class="font-extrabold text-lg text-tucuman-navy">Importación Masiva de Socios</h3>
+            <p class="text-xs text-slate-500">Carga o actualiza el padrón de socios desde un archivo Excel o CSV</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modalImportMembers')" class="text-slate-400 hover:text-slate-600 font-bold text-2xl leading-none">&times;</button>
+      </div>
+
+      <!-- Paso 1: Descargar Plantilla -->
+      <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+        <div class="space-y-0.5">
+          <span class="font-extrabold text-slate-800 text-sm">Paso 1: ¿No tienes la plantilla?</span>
+          <p class="text-slate-500 text-[11px]">Descarga el archivo modelo con el formato de columnas y ejemplos listos para rellenar.</p>
+        </div>
+        <button type="button" onclick="downloadMembersCsvTemplate()" class="bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 font-bold px-3.5 py-2 rounded-xl text-xs flex items-center gap-1.5 shadow-xs whitespace-nowrap transition">
+          📄 Descargar Plantilla (.csv)
+        </button>
+      </div>
+
+      <!-- Paso 2: Cargar Archivo -->
+      <div class="space-y-2">
+        <span class="block text-xs font-bold text-slate-700">Paso 2: Selecciona el archivo con los socios (.csv o .txt)</span>
+        
+        <div class="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl p-6 text-center bg-slate-50/50 hover:bg-emerald-50/30 transition cursor-pointer" onclick="document.getElementById('membersCsvFileInput').click()">
+          <input type="file" id="membersCsvFileInput" accept=".csv, text/csv, text/plain, .txt" class="hidden" onchange="handleMembersCsvFileSelected(event)">
+          <div class="space-y-1.5 pointer-events-none">
+            <span class="text-3xl block">📁</span>
+            <p class="text-xs font-bold text-slate-700">Haz clic aquí para seleccionar el archivo o arrástralo a este cuadro</p>
+            <p class="text-[11px] text-slate-400">Archivos compatibles: CSV delimitado por punto y coma (;) o comas (,)</p>
+          </div>
+        </div>
+        <div id="selectedFileNameDisplay" class="text-xs font-bold text-emerald-800 hidden flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl">
+          <span>✓ Archivo cargado:</span> <span id="selectedFileNameText" class="font-mono"></span>
+        </div>
+      </div>
+
+      <!-- Paso 3: Vista Previa y Resumen (Se muestra al cargar archivo) -->
+      <div id="importPreviewSection" class="space-y-3 hidden border-t border-slate-100 pt-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">Paso 3: Vista Previa y Opciones</span>
+          
+          <!-- Opción de actualizar existentes -->
+          <label class="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+            <input type="checkbox" id="chkUpdateExistingMembers" checked class="rounded text-emerald-600 focus:ring-emerald-500">
+            <span>Actualizar socios existentes si coincide el DNI</span>
+          </label>
+        </div>
+
+        <!-- Métricas de análisis -->
+        <div class="grid grid-cols-3 gap-2">
+          <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-center">
+            <span class="text-[10px] font-bold text-emerald-800 block uppercase">Nuevos a Incorporar</span>
+            <span id="previewNewCount" class="text-lg font-black text-emerald-700">0</span>
+          </div>
+          <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-center">
+            <span class="text-[10px] font-bold text-amber-800 block uppercase">Ya Existentes (DNI)</span>
+            <span id="previewExistingCount" class="text-lg font-black text-amber-700">0</span>
+          </div>
+          <div class="p-3 bg-slate-100 border border-slate-200 rounded-xl text-center">
+            <span class="text-[10px] font-bold text-slate-600 block uppercase">Total a Procesar</span>
+            <span id="previewTotalCount" class="text-lg font-black text-slate-800">0</span>
+          </div>
+        </div>
+
+        <!-- Tabla con las primeras filas analizadas -->
+        <div class="overflow-x-auto border border-slate-200 rounded-xl max-h-48 overflow-y-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-100 text-slate-600 font-bold uppercase text-[10px] sticky top-0">
+              <tr>
+                <th class="py-2 px-3">Estado</th>
+                <th class="py-2 px-3">Nombre Completo</th>
+                <th class="py-2 px-3">DNI</th>
+                <th class="py-2 px-3">Teléfono</th>
+                <th class="py-2 px-3">Categoría</th>
+                <th class="py-2 px-3">Actividades Mapeadas</th>
+              </tr>
+            </thead>
+            <tbody id="importPreviewTableBody" class="divide-y divide-slate-100 text-slate-700">
+              <!-- Filas de muestra generadas dinámicamente -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="flex gap-2 pt-2 border-t border-slate-100">
+        <button type="button" onclick="closeModal('modalImportMembers')" class="flex-1 border py-2.5 rounded-xl text-xs font-semibold text-slate-600">
+          Cancelar
+        </button>
+        <button type="button" id="btnConfirmImportMembers" onclick="executeMembersImport()" disabled class="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold py-2.5 rounded-xl text-xs shadow-sm transition flex items-center justify-center gap-1.5">
+          <span>✅</span>
+          <span id="btnConfirmImportText">Selecciona un archivo para continuar</span>
+        </button>
+      </div>
+
     </div>
   </div>
 
@@ -1645,7 +1787,7 @@
         <div>
           <div class="flex items-center justify-between mb-1">
             <label class="block text-xs font-bold text-slate-600">Espacio o Instalación Alquilada</label>
-            <button type="button" id="btnManageFacilitiesQuick" onclick="openManageFacilities()" class="text-[11px] text-emerald-700 hover:text-emerald-900 font-bold flex items-center gap-1">
+            <button type="button" id="btnManageFacilitiesQuick" style="display: none;" onclick="openManageFacilities()" class="text-[11px] text-emerald-700 hover:text-emerald-900 font-bold flex items-center gap-1">
               ⚙️ Gestionar Espacios
             </button>
           </div>
@@ -1740,7 +1882,7 @@
         <div>
           <div class="flex items-center justify-between mb-1">
             <label class="block text-xs font-bold text-slate-600">Espacio Alquilado</label>
-            <button type="button" id="btnEditRentalManageQuick" onclick="openManageFacilities()" class="text-[11px] text-emerald-700 hover:text-emerald-900 font-bold flex items-center gap-1">
+            <button type="button" id="btnEditRentalManageQuick" style="display: none;" onclick="openManageFacilities()" class="text-[11px] text-emerald-700 hover:text-emerald-900 font-bold flex items-center gap-1">
               ⚙️ Gestionar
             </button>
           </div>
@@ -1836,7 +1978,7 @@
           <div>
             <div class="flex items-center justify-between mb-1">
               <label class="block text-xs font-bold text-slate-600">Rubro / Categoría</label>
-              <button type="button" id="btnManageExpenseCategoriesQuick" onclick="openManageExpenseCategories()" class="text-[11px] text-rose-700 hover:text-rose-900 font-bold flex items-center gap-1">
+              <button type="button" id="btnManageExpenseCategoriesQuick" style="display: none;" onclick="openManageExpenseCategories()" class="text-[11px] text-rose-700 hover:text-rose-900 font-bold flex items-center gap-1">
                 ⚙️ Gestionar
               </button>
             </div>
@@ -1905,7 +2047,7 @@
           <div>
             <div class="flex items-center justify-between mb-1">
               <label class="block text-xs font-bold text-slate-600">Rubro</label>
-              <button type="button" id="btnEditExpenseManageQuick" onclick="openManageExpenseCategories()" class="text-[11px] text-rose-700 hover:text-rose-900 font-bold flex items-center gap-1">
+              <button type="button" id="btnEditExpenseManageQuick" style="display: none;" onclick="openManageExpenseCategories()" class="text-[11px] text-rose-700 hover:text-rose-900 font-bold flex items-center gap-1">
                 ⚙️ Gestionar
               </button>
             </div>
@@ -2881,6 +3023,8 @@
       const subTabCashflowConfig = document.getElementById('subTabCashflowConfig');
       if (subTabCashflowConfig) {
         subTabCashflowConfig.style.display = isAdmin ? 'inline-flex' : 'none';
+        if (!isAdmin) subTabCashflowConfig.classList.add('hidden');
+        else subTabCashflowConfig.classList.remove('hidden');
       }
       const vCashflowConfig = document.getElementById('cashflowSubViewConfig');
       if (vCashflowConfig && !isAdmin) {
@@ -2888,16 +3032,32 @@
       }
 
       const btnNewRentalManage = document.getElementById('btnManageFacilitiesQuick');
-      if (btnNewRentalManage) btnNewRentalManage.style.display = isAdmin ? 'inline-flex' : 'none';
+      if (btnNewRentalManage) {
+        btnNewRentalManage.style.display = isAdmin ? 'inline-flex' : 'none';
+        if (!isAdmin) btnNewRentalManage.classList.add('hidden');
+        else btnNewRentalManage.classList.remove('hidden');
+      }
 
       const btnEditRentalManage = document.getElementById('btnEditRentalManageQuick');
-      if (btnEditRentalManage) btnEditRentalManage.style.display = isAdmin ? 'inline-flex' : 'none';
+      if (btnEditRentalManage) {
+        btnEditRentalManage.style.display = isAdmin ? 'inline-flex' : 'none';
+        if (!isAdmin) btnEditRentalManage.classList.add('hidden');
+        else btnEditRentalManage.classList.remove('hidden');
+      }
 
       const btnNewExpenseManage = document.getElementById('btnManageExpenseCategoriesQuick');
-      if (btnNewExpenseManage) btnNewExpenseManage.style.display = isAdmin ? 'inline-flex' : 'none';
+      if (btnNewExpenseManage) {
+        btnNewExpenseManage.style.display = isAdmin ? 'inline-flex' : 'none';
+        if (!isAdmin) btnNewExpenseManage.classList.add('hidden');
+        else btnNewExpenseManage.classList.remove('hidden');
+      }
 
       const btnEditExpenseManage = document.getElementById('btnEditExpenseManageQuick');
-      if (btnEditExpenseManage) btnEditExpenseManage.style.display = isAdmin ? 'inline-flex' : 'none';
+      if (btnEditExpenseManage) {
+        btnEditExpenseManage.style.display = isAdmin ? 'inline-flex' : 'none';
+        if (!isAdmin) btnEditExpenseManage.classList.add('hidden');
+        else btnEditExpenseManage.classList.remove('hidden');
+      }
 
       // Si no es admin y estaba en la subpestaña config de caja, redirigir a rentals
       if (!isAdmin && cashflowSubTab === 'config') {
@@ -4623,6 +4783,10 @@
     // ====================================================================
 
     function switchCashflowSubTab(subTab) {
+      if (subTab === 'config' && currentUser.role_code !== 'admin') {
+        alert('🚫 Permiso Denegado: La configuración de espacios y rubros es exclusiva para Administradores.');
+        subTab = 'rentals';
+      }
       cashflowSubTab = subTab;
       
       const vRentals = document.getElementById('cashflowSubViewRentals');
@@ -5231,6 +5395,10 @@
     // ====================================================================
 
     function openManageFacilities() {
+      if (currentUser.role_code !== 'admin') {
+        alert('🚫 Permiso Denegado: Solo el Administrador puede configurar o gestionar los espacios de alquiler.');
+        return;
+      }
       closeModal('modalNewRental');
       closeModal('modalEditRental');
       switchTab('cashflow');
@@ -5238,6 +5406,10 @@
     }
 
     function openManageExpenseCategories() {
+      if (currentUser.role_code !== 'admin') {
+        alert('🚫 Permiso Denegado: Solo el Administrador puede configurar o gestionar los rubros de gastos.');
+        return;
+      }
       closeModal('modalNewExpense');
       closeModal('modalEditExpense');
       switchTab('cashflow');
@@ -6829,6 +7001,9 @@ ON CONFLICT (id) DO NOTHING;`;
         talonarios,
         rentals,
         expenses,
+        rentalFacilities,
+        expenseCategories,
+        clubUsers,
         exportDate: new Date().toISOString()
       };
 
@@ -6838,6 +7013,378 @@ ON CONFLICT (id) DO NOTHING;`;
       a.href = url;
       a.download = `backup_tucuman_bb_${new Date().toISOString().slice(0,10)}.json`;
       a.click();
+    }
+
+    // ====================================================================
+    // IMPORTACIÓN MASIVA DE SOCIOS (EXCEL / CSV) & PLANTILLA DESCARGABLE
+    // ====================================================================
+
+    let parsedImportMembers = [];
+
+    // 1. Descarga de Plantilla Oficial para Excel / CSV
+    function downloadMembersCsvTemplate() {
+      // BOM UTF-8 (\uFEFF) para compatibilidad total con acentos y caracteres especiales en Microsoft Excel y Google Sheets
+      // Delimitador punto y coma (;) estándar para Excel en español
+      const headers = [
+        "Nombre Completo",
+        "DNI",
+        "Telefono",
+        "Email",
+        "Categoria Basquet",
+        "Otras Actividades",
+        "Estado",
+        "Fecha Nacimiento",
+        "Observaciones"
+      ].join(';');
+
+      const sampleRows = [
+        'Lucas Martínez;38456123;+54 381 511-2233;lucas.martinez@gmail.com;Primera División;Gimnasio de Musculación;Activo;1998-04-12;Capitán de equipo',
+        'Mateo Rodríguez;48222333;+54 381 622-4455;fam.rodriguez@gmail.com;U15 (Infantiles);;Activo;2011-09-24;Ficha médica al día',
+        'Mariana Gómez;35987456;+54 381 644-8899;mariana.gomez@gmail.com;;Yoga y Pilates Funcional;Activo;1992-06-15;Turno mañana',
+        'Carlos Benítez;42111222;+54 381 488-3322;carlos.benitez@gmail.com;;Gimnasio de Musculación;Activo;2000-11-05;Paga del 1 al 10',
+        'Bautista Juárez;50111444;+54 381 655-1234;bautista.j@gmail.com;U13 (Pre-Infantiles);;Activo;2013-02-18;Autorización parental firmada'
+      ].join('\r\n');
+
+      const csvContent = '\uFEFF' + headers + '\r\n' + sampleRows + '\r\n';
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `plantilla_socios_club_tucuman_bb.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // 2. Abrir Modal de Importación
+    function openImportMembersModal() {
+      parsedImportMembers = [];
+      const fileInput = document.getElementById('membersCsvFileInput');
+      if (fileInput) fileInput.value = '';
+
+      const nameDisplay = document.getElementById('selectedFileNameDisplay');
+      if (nameDisplay) nameDisplay.classList.add('hidden');
+
+      const previewSection = document.getElementById('importPreviewSection');
+      if (previewSection) previewSection.classList.add('hidden');
+
+      const tbody = document.getElementById('importPreviewTableBody');
+      if (tbody) tbody.innerHTML = '';
+
+      const btnConfirm = document.getElementById('btnConfirmImportMembers');
+      if (btnConfirm) {
+        btnConfirm.disabled = true;
+        const btnText = document.getElementById('btnConfirmImportText');
+        if (btnText) btnText.innerText = 'Selecciona un archivo para continuar';
+      }
+
+      openModal('modalImportMembers');
+    }
+
+    // 3. Manejar selección de archivo
+    function handleMembersCsvFileSelected(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      const nameDisplay = document.getElementById('selectedFileNameDisplay');
+      const nameText = document.getElementById('selectedFileNameText');
+      if (nameDisplay && nameText) {
+        nameText.innerText = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+        nameDisplay.classList.remove('hidden');
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const content = e.target.result;
+          parseAndPreviewMembersCsv(content);
+        } catch (err) {
+          console.error('Error al procesar el archivo CSV:', err);
+          alert('❌ Error al procesar el archivo. Verifica que contenga texto válido delimitado por punto y coma (;) o comas (,).');
+        }
+      };
+      reader.onerror = function() {
+        alert('❌ Error al leer el archivo desde el dispositivo.');
+      };
+
+      reader.readAsText(file, 'UTF-8');
+    }
+
+    // 4. Analizar y previsualizar datos del CSV
+    function parseAndPreviewMembersCsv(csvText) {
+      const lines = csvText.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      if (lines.length < 2) {
+        alert('⚠️ El archivo seleccionado parece estar vacío o solo contiene la fila de encabezados.');
+        return;
+      }
+
+      let headerLine = lines[0];
+      if (headerLine.charCodeAt(0) === 0xFEFF) {
+        headerLine = headerLine.substring(1);
+      }
+
+      const countSemi = (headerLine.match(/;/g) || []).length;
+      const countComma = (headerLine.match(/,/g) || []).length;
+      const countTab = (headerLine.match(/\t/g) || []).length;
+
+      let delimiter = ';';
+      if (countTab > countSemi && countTab > countComma) delimiter = '\t';
+      else if (countComma > countSemi) delimiter = ',';
+
+      function splitCsvRow(rowStr, delim) {
+        const result = [];
+        let cur = '';
+        let inQuotes = false;
+        for (let i = 0; i < rowStr.length; i++) {
+          const c = rowStr[i];
+          if (c === '"') {
+            if (inQuotes && rowStr[i + 1] === '"') {
+              cur += '"';
+              i++;
+            } else {
+              inQuotes = !inQuotes;
+            }
+          } else if (c === delim && !inQuotes) {
+            result.push(cur.trim());
+            cur = '';
+          } else {
+            cur += c;
+          }
+        }
+        result.push(cur.trim());
+        return result;
+      }
+
+      const headers = splitCsvRow(headerLine, delimiter).map(h => 
+        h.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim()
+      );
+
+      const colMap = {
+        name: headers.findIndex(h => h.includes('nombre') || h.includes('socio') || h.includes('apellido') || h.includes('atleta')),
+        dni: headers.findIndex(h => h.includes('dni') || h.includes('documento') || h.includes('cedula') || h.includes('identificacion')),
+        phone: headers.findIndex(h => h.includes('tel') || h.includes('cel') || h.includes('movil') || h.includes('whatsapp')),
+        email: headers.findIndex(h => h.includes('mail') || h.includes('correo')),
+        category: headers.findIndex(h => (h.includes('cat') && !h.includes('basquet')) || h.includes('tipo') || h.includes('estado')),
+        basketCat: headers.findIndex(h => h.includes('basquet') || h.includes('categoria basquet') || h.includes('division')),
+        activities: headers.findIndex(h => h.includes('actividad') || h.includes('disciplina') || h.includes('deporte') || h.includes('taller')),
+        notes: headers.findIndex(h => h.includes('nota') || h.includes('obs') || h.includes('comentario') || h.includes('detalle'))
+      };
+
+      if (colMap.name === -1 && colMap.dni === -1) {
+        alert('⚠️ No se detectaron las columnas requeridas (Nombre Completo o DNI) en la cabecera del archivo.\n\nPor favor descarga la Plantilla Oficial del Club.');
+        return;
+      }
+
+      parsedImportMembers = [];
+      let newCount = 0;
+      let existingCount = 0;
+
+      for (let i = 1; i < lines.length; i++) {
+        const rawRow = lines[i];
+        if (!rawRow) continue;
+        const cols = splitCsvRow(rawRow, delimiter);
+
+        const fullName = colMap.name !== -1 ? (cols[colMap.name] || '').trim() : '';
+        let dni = colMap.dni !== -1 ? (cols[colMap.dni] || '').replace(/[^\d]/g, '').trim() : '';
+        const phone = colMap.phone !== -1 ? (cols[colMap.phone] || '').trim() : '';
+        const email = colMap.email !== -1 ? (cols[colMap.email] || '').trim() : '';
+        const basketCatName = colMap.basketCat !== -1 ? (cols[colMap.basketCat] || '').trim() : '';
+        const activitiesStr = colMap.activities !== -1 ? (cols[colMap.activities] || '').trim() : '';
+        const catName = colMap.category !== -1 ? (cols[colMap.category] || '').trim() : '';
+        const notes = colMap.notes !== -1 ? (cols[colMap.notes] || '').trim() : '';
+
+        if (!fullName && !dni) continue;
+
+        if (!dni) {
+          dni = 'S' + Math.floor(100000 + Math.random() * 900000);
+        }
+
+        // Mapear categoría de básquet
+        let matchedBasketCatId = null;
+        let matchedBasketCatName = '';
+        if (basketCatName) {
+          const normBCat = basketCatName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+          const found = basketballCategories.find(bc => {
+            const bcNorm = bc.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            return bcNorm === normBCat || bcNorm.includes(normBCat) || normBCat.includes(bcNorm);
+          });
+          if (found) {
+            matchedBasketCatId = found.id;
+            matchedBasketCatName = found.name;
+          }
+        }
+
+        // Mapear disciplinas / actividades
+        const matchedActIds = [];
+        if (activitiesStr) {
+          const parts = activitiesStr.split(/[,;\/|]/).map(p => p.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")).filter(Boolean);
+          parts.forEach(part => {
+            const foundAct = activities.find(a => {
+              const aNorm = a.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+              return aNorm.includes(part) || part.includes(aNorm);
+            });
+            if (foundAct && !matchedActIds.includes(foundAct.id)) {
+              matchedActIds.push(foundAct.id);
+            }
+          });
+        }
+
+        // Si se indicó básquet pero ninguna actividad, asociar Básquetbol (id: 1)
+        if (matchedBasketCatId && !matchedActIds.includes(1)) {
+          matchedActIds.unshift(1);
+        }
+
+        // Si no se asignó ninguna disciplina, asociar por defecto la primera del club
+        if (matchedActIds.length === 0 && activities.length > 0) {
+          matchedActIds.push(activities[0].id);
+        }
+
+        // Comprobar existencia previa por DNI
+        const existing = members.find(m => String(m.dni).replace(/[^\d]/g, '') === dni);
+        if (existing) existingCount++;
+        else newCount++;
+
+        parsedImportMembers.push({
+          full_name: fullName || 'Socio Sin Nombre',
+          dni: dni,
+          phone: phone,
+          email: email,
+          category: matchedBasketCatName || catName || 'Activo',
+          basketball_category_id: matchedBasketCatId,
+          activity_ids: matchedActIds,
+          notes: notes,
+          isExisting: !!existing,
+          existingId: existing ? existing.id : null
+        });
+      }
+
+      if (parsedImportMembers.length === 0) {
+        alert('⚠️ No se encontraron filas con datos de socios válidos para importar.');
+        return;
+      }
+
+      // Actualizar contadores
+      const elNew = document.getElementById('previewNewCount');
+      const elExist = document.getElementById('previewExistingCount');
+      const elTotal = document.getElementById('previewTotalCount');
+      if (elNew) elNew.innerText = newCount;
+      if (elExist) elExist.innerText = existingCount;
+      if (elTotal) elTotal.innerText = parsedImportMembers.length;
+
+      // Renderizar vista previa en tabla (primeras 15 filas)
+      const tbody = document.getElementById('importPreviewTableBody');
+      if (tbody) {
+        const previewRows = parsedImportMembers.slice(0, 15);
+        tbody.innerHTML = previewRows.map(m => {
+          const actNames = m.activity_ids.map(id => {
+            const a = activities.find(x => x.id === id);
+            return a ? a.name : `Actividad #${id}`;
+          }).join(', ');
+
+          const badge = m.isExisting
+            ? `<span class="bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full text-[10px] border border-amber-300">Actualizar</span>`
+            : `<span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full text-[10px] border border-emerald-300">Nuevo</span>`;
+
+          return `
+            <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+              <td class="py-2 px-3">${badge}</td>
+              <td class="py-2 px-3 font-bold text-slate-900">${m.full_name}</td>
+              <td class="py-2 px-3 font-mono text-[11px]">${m.dni}</td>
+              <td class="py-2 px-3 text-[11px]">${m.phone || '-'}</td>
+              <td class="py-2 px-3 text-[11px] font-semibold text-tucuman-navy">${m.category}</td>
+              <td class="py-2 px-3 text-[11px] text-slate-600 truncate max-w-[200px]" title="${actNames}">${actNames}</td>
+            </tr>
+          `;
+        }).join('');
+
+        if (parsedImportMembers.length > 15) {
+          tbody.innerHTML += `
+            <tr class="bg-slate-50/70 font-semibold text-slate-500 text-center">
+              <td colspan="6" class="py-2 text-[11px]">... y ${parsedImportMembers.length - 15} socios más listos para incorporar.</td>
+            </tr>
+          `;
+        }
+      }
+
+      const previewSection = document.getElementById('importPreviewSection');
+      if (previewSection) previewSection.classList.remove('hidden');
+
+      const btnConfirm = document.getElementById('btnConfirmImportMembers');
+      const btnText = document.getElementById('btnConfirmImportText');
+      if (btnConfirm) {
+        btnConfirm.disabled = false;
+        if (btnText) btnText.innerText = `Confirmar e Importar ${parsedImportMembers.length} Socios`;
+      }
+    }
+
+    // 5. Ejecutar importación
+    async function executeMembersImport() {
+      if (!parsedImportMembers || parsedImportMembers.length === 0) {
+        alert('⚠️ No hay socios cargados para procesar.');
+        return;
+      }
+
+      if (currentUser.role_code === 'entrenador') {
+        alert('🚫 Permiso Denegado: Los entrenadores no tienen autorización para modificar el padrón general de socios.');
+        return;
+      }
+
+      const updateExisting = document.getElementById('chkUpdateExistingMembers')?.checked ?? true;
+      const btnConfirm = document.getElementById('btnConfirmImportMembers');
+      const btnText = document.getElementById('btnConfirmImportText');
+      if (btnConfirm) btnConfirm.disabled = true;
+      if (btnText) btnText.innerText = 'Importando socios... Por favor espera';
+
+      let importedCount = 0;
+      let updatedCount = 0;
+
+      for (const item of parsedImportMembers) {
+        if (item.isExisting && item.existingId) {
+          if (updateExisting) {
+            const idx = members.findIndex(m => m.id === item.existingId);
+            if (idx !== -1) {
+              const mergedActs = Array.from(new Set([...(members[idx].activity_ids || []), ...(item.activity_ids || [])]));
+              members[idx] = {
+                ...members[idx],
+                full_name: item.full_name || members[idx].full_name,
+                phone: item.phone || members[idx].phone,
+                email: item.email || members[idx].email,
+                category: item.category || members[idx].category,
+                basketball_category_id: item.basketball_category_id !== null ? item.basketball_category_id : members[idx].basketball_category_id,
+                activity_ids: mergedActs
+              };
+              updatedCount++;
+              if (supabaseClient) {
+                syncMemberToSupabase(members[idx]);
+              }
+            }
+          }
+        } else {
+          const maxId = members.reduce((max, m) => Math.max(max, Number(m.id) || 0), 0);
+          const newMember = {
+            id: maxId + 1 + Math.floor(Math.random() * 100),
+            full_name: item.full_name,
+            dni: item.dni,
+            phone: item.phone,
+            email: item.email,
+            category: item.category,
+            basketball_category_id: item.basketball_category_id,
+            activity_ids: item.activity_ids
+          };
+          members.push(newMember);
+          importedCount++;
+          if (supabaseClient) {
+            syncMemberToSupabase(newMember);
+          }
+        }
+      }
+
+      saveToLocalStorage();
+      refreshAllViews();
+      closeModal('modalImportMembers');
+
+      alert(`🎉 ¡Importación completada con éxito!\n\n• Nuevos socios incorporados: ${importedCount}\n• Socios actualizados: ${updatedCount}\n• Padrón total actual: ${members.length} socios.`);
     }
   </script>
 
